@@ -1,18 +1,14 @@
 ---
 id: existing-plugins
 title: Existing plugins
-description: Lists of existing open source plugins
 ---
 
-## The Plugin Marketplace
+## Open source plugins
 
-Open source plugins that you can add to your Backstage deployment can be found
-at:
+The full list of open source plugins can be found
+[here](https://github.com/spotify/backstage/tree/master/plugins).
 
-https://backstage.io/plugins
+## Plugin gallery
 
-![](https://backstage.io/blog/assets/marketplace.png)
-
-## Links
-
-- [[blog] The Plugin Marketplace is open](https://backstage.io/blog/2020/09/30/plugin-marketplace)
+TODO: In the future we would like to have something similar to
+https://grafana.com/grafana/plugins

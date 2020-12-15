@@ -14,4 +14,3 @@
  * limitations under the License.
  */
 export { LatestWorkflowRunCard, LatestWorkflowsForBranchCard } from './Cards';
-export { RecentWorkflowRunsCard } from './RecentWorkflowRunsCard';

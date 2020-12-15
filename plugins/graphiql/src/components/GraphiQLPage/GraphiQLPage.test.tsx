@@ -19,7 +19,6 @@ import { GraphiQLPage } from './GraphiQLPage';
 import { ThemeProvider } from '@material-ui/core';
 import { lightTheme } from '@backstage/theme';
 import { ApiProvider, ApiRegistry } from '@backstage/core';
-import { act } from 'react-dom/test-utils';
 import { renderWithEffects } from '@backstage/test-utils';
 import { GraphQLBrowseApi, graphQlBrowseApiRef } from '../../lib/api';
 
@@ -29,7 +28,6 @@ jest.mock('../GraphiQLBrowser', () => ({
 
 describe('GraphiQLPage', () => {
   it('should show progress', async () => {
-    jest.useFakeTimers();
     const loadingApi: GraphQLBrowseApi = {
       async getEndpoints() {
         await new Promise(() => {});
@@ -45,12 +43,9 @@ describe('GraphiQLPage', () => {
         ,
       </ApiProvider>,
     );
-    act(() => {
-      jest.advanceTimersByTime(250);
-    });
+
     rendered.getByText('GraphiQL');
     rendered.getByTestId('progress');
-    jest.useRealTimers();
   });
 
   it('should show error', async () => {

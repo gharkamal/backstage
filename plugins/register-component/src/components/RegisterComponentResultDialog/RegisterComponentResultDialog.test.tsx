@@ -14,40 +14,42 @@
  * limitations under the License.
  */
 
-import { Entity } from '@backstage/catalog-model';
-import { createRouteRef } from '@backstage/core';
 import { lightTheme } from '@backstage/theme';
 import { ThemeProvider } from '@material-ui/core';
-import { render, screen } from '@testing-library/react';
-import React from 'react';
+import { cleanup, render } from '@testing-library/react';
+import React, { ComponentProps } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { RegisterComponentResultDialog } from './RegisterComponentResultDialog';
 
-const Wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <MemoryRouter>
-    <ThemeProvider theme={lightTheme}>{children}</ThemeProvider>
-  </MemoryRouter>
-);
-
+const setup = (
+  props?: Partial<ComponentProps<typeof RegisterComponentResultDialog>>,
+) => ({
+  rendered: render(
+    <MemoryRouter>
+      <ThemeProvider theme={lightTheme}>
+        <RegisterComponentResultDialog
+          onClose={() => {}}
+          entities={[]}
+          {...props}
+        />
+      </ThemeProvider>
+    </MemoryRouter>,
+  ),
+});
 describe('RegisterComponentResultDialog', () => {
+  afterEach(() => cleanup());
+
   it('should render', () => {
-    render(
-      <RegisterComponentResultDialog
-        onClose={() => {}}
-        entities={[]}
-        catalogRouteRef={createRouteRef({
-          path: '/catalog',
-          title: 'Service Catalog',
-        })}
-      />,
-      { wrapper: Wrapper },
-    );
-
-    expect(screen.getByText('Registration Result')).toBeInTheDocument();
+    const { rendered } = setup();
+    expect(
+      rendered.getByText('Component Registration Result'),
+    ).toBeInTheDocument();
   });
+});
 
-  it('should show a list of components if success', async () => {
-    const entities: Entity[] = [
+it('should show a list of components if success', async () => {
+  const { rendered } = setup({
+    entities: [
       {
         apiVersion: 'backstage.io/v1alpha1',
         kind: 'Component',
@@ -68,26 +70,14 @@ describe('RegisterComponentResultDialog', () => {
           type: 'service',
         },
       },
-    ];
-
-    render(
-      <RegisterComponentResultDialog
-        onClose={() => {}}
-        entities={entities}
-        catalogRouteRef={createRouteRef({
-          path: '/catalog',
-          title: 'Service Catalog',
-        })}
-      />,
-      { wrapper: Wrapper },
-    );
-
-    expect(
-      screen.getByText(
-        'The following entities have been successfully created:',
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Component1')).toBeInTheDocument();
-    expect(screen.getByText('Component2')).toBeInTheDocument();
+    ],
   });
+
+  expect(
+    rendered.getByText(
+      'The following components have been succefully created:',
+    ),
+  ).toBeInTheDocument();
+  expect(rendered.getByText('Component1')).toBeInTheDocument();
+  expect(rendered.getByText('Component2')).toBeInTheDocument();
 });

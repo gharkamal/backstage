@@ -22,13 +22,13 @@ import {
   Header,
   Lifecycle,
   Page,
+  pageTheme,
   Progress,
   SupportButton,
   useApi,
-  WarningPanel,
 } from '@backstage/core';
 import { catalogApiRef } from '@backstage/plugin-catalog';
-import { Button, Grid, Link, Typography } from '@material-ui/core';
+import { Button, Grid, Typography, Link } from '@material-ui/core';
 import React, { useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import useStaleWhileRevalidate from 'swr';
@@ -46,19 +46,16 @@ const getTemplateCardProps = (
     tags: (template.metadata?.tags as string[]) ?? [],
   };
 };
-
-export const ScaffolderPage = () => {
+export const ScaffolderPage: React.FC<{}> = () => {
   const catalogApi = useApi(catalogApiRef);
   const errorApi = useApi(errorApiRef);
 
   const { data: templates, isValidating, error } = useStaleWhileRevalidate(
     'templates/all',
-    async () => {
-      const response = await catalogApi.getEntities({
-        filter: { kind: 'Template' },
-      });
-      return response.items as TemplateEntityV1alpha1[];
-    },
+    async () =>
+      catalogApi.getEntities({ kind: 'Template' }) as Promise<
+        TemplateEntityV1alpha1[]
+      >,
   );
 
   useEffect(() => {
@@ -67,25 +64,25 @@ export const ScaffolderPage = () => {
   }, [error, errorApi]);
 
   return (
-    <Page themeId="home">
+    <Page theme={pageTheme.home}>
       <Header
-        pageTitleOverride="Create a New Component"
+        pageTitleOverride="Create a new component"
         title={
           <>
-            Create a New Component <Lifecycle alpha shorthand />
+            Create a new component <Lifecycle alpha shorthand />
           </>
         }
         subtitle="Create new software components using standard templates"
       />
       <Content>
-        <ContentHeader title="Available Templates">
+        <ContentHeader title="Available templates">
           <Button
             variant="contained"
             color="primary"
             component={RouterLink}
-            to="/catalog-import"
+            to="/register-component"
           >
-            Register Existing Component
+            Register existing component
           </Button>
           <SupportButton>
             Create new software components using standard templates. Different
@@ -104,16 +101,16 @@ export const ScaffolderPage = () => {
           </Typography>
         )}
         {error && (
-          <WarningPanel>
+          <Typography variant="body2">
             Oops! Something went wrong loading the templates: {error.message}
-          </WarningPanel>
+          </Typography>
         )}
         <Grid container>
           {templates &&
             templates?.length > 0 &&
             templates.map(template => {
               return (
-                <Grid key={template.metadata.uid} item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={3}>
                   <TemplateCard {...getTemplateCardProps(template)} />
                 </Grid>
               );

@@ -17,11 +17,11 @@
 import {
   createServiceBuilder,
   loadBackendConfig,
-  SingleHostDiscovery,
 } from '@backstage/backend-common';
 import { Server } from 'http';
 import { Logger } from 'winston';
 import { createRouter } from './router';
+import { ConfigReader } from '@backstage/config';
 
 export interface ServerOptions {
   port: number;
@@ -36,12 +36,11 @@ export async function startStandaloneServer(
 
   logger.debug('Creating application...');
 
-  const config = await loadBackendConfig({ logger, argv: process.argv });
-  const discovery = SingleHostDiscovery.fromConfig(config);
+  const config = ConfigReader.fromConfigs(await loadBackendConfig());
   const router = await createRouter({
     config,
     logger,
-    discovery,
+    pathPrefix: '/proxy',
   });
   const service = createServiceBuilder(module)
     .enableCors({ origin: 'http://localhost:3000' })

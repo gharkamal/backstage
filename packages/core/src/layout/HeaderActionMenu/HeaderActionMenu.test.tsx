@@ -16,24 +16,22 @@
 
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import {
-  wrapInTestApp,
-  Keyboard,
-  renderInTestApp,
-} from '@backstage/test-utils';
+import { wrapInTestApp, Keyboard } from '@backstage/test-utils';
 import { HeaderActionMenu } from './HeaderActionMenu';
 
 describe('<ComponentContextMenu />', () => {
-  it('renders without any items and without exploding', async () => {
-    await renderInTestApp(<HeaderActionMenu actionItems={[]} />);
+  it('renders without any items and without exploding', () => {
+    render(wrapInTestApp(<HeaderActionMenu actionItems={[]} />));
   });
 
-  it('can open the menu and click menu items', async () => {
+  it('can open the menu and click menu items', () => {
     const onClickFunction = jest.fn();
-    const rendered = await renderInTestApp(
-      <HeaderActionMenu
-        actionItems={[{ label: 'Some label', onClick: onClickFunction }]}
-      />,
+    const rendered = render(
+      wrapInTestApp(
+        <HeaderActionMenu
+          actionItems={[{ label: 'Some label', onClick: onClickFunction }]}
+        />,
+      ),
     );
     expect(rendered.queryByText('Some label')).not.toBeInTheDocument();
     expect(onClickFunction).not.toHaveBeenCalled();
@@ -50,10 +48,12 @@ describe('<ComponentContextMenu />', () => {
   });
 
   it('Disabled', async () => {
-    const rendered = await renderInTestApp(
-      <HeaderActionMenu
-        actionItems={[{ label: 'Some label', disabled: true }]}
-      />,
+    const rendered = render(
+      wrapInTestApp(
+        <HeaderActionMenu
+          actionItems={[{ label: 'Some label', disabled: true }]}
+        />,
+      ),
     );
 
     fireEvent.click(rendered.getByTestId('header-action-menu'));
@@ -63,20 +63,22 @@ describe('<ComponentContextMenu />', () => {
     );
   });
 
-  it('Test wrapper, and secondary label', async () => {
+  it('Test wrapper, and secondary label', () => {
     const onClickFunction = jest.fn();
-    const rendered = await renderInTestApp(
-      <HeaderActionMenu
-        actionItems={[
-          {
-            label: 'Some label',
-            secondaryLabel: 'Secondary label',
-            WrapperComponent: ({ children }) => (
-              <button onClick={onClickFunction}>{children}</button>
-            ),
-          },
-        ]}
-      />,
+    const rendered = render(
+      wrapInTestApp(
+        <HeaderActionMenu
+          actionItems={[
+            {
+              label: 'Some label',
+              secondaryLabel: 'Secondary label',
+              WrapperComponent: ({ children }) => (
+                <button onClick={onClickFunction}>{children}</button>
+              ),
+            },
+          ]}
+        />,
+      ),
     );
 
     expect(onClickFunction).not.toHaveBeenCalled();

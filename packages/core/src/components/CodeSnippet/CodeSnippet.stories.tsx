@@ -19,7 +19,7 @@ import { CodeSnippet } from './CodeSnippet';
 import { InfoCard } from '../../layout/InfoCard';
 
 export default {
-  title: 'Data Display/CodeSnippet',
+  title: 'CodeSnippet',
   component: CodeSnippet,
 };
 
@@ -84,11 +84,5 @@ export const Languages = () => (
     <CodeSnippet text={JAVASCRIPT} language="javascript" showLineNumbers />
     <CodeSnippet text={TYPESCRIPT} language="typescript" showLineNumbers />
     <CodeSnippet text={PYTHON} language="python" showLineNumbers />
-  </InfoCard>
-);
-
-export const CopyCode = () => (
-  <InfoCard title="Copy Code">
-    <CodeSnippet text={JAVASCRIPT} language="javascript" showCopyCodeButton />
   </InfoCard>
 );

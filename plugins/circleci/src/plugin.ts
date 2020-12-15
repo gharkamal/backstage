@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {
-  createPlugin,
-  createApiFactory,
-  discoveryApiRef,
-} from '@backstage/core';
-import { circleCIApiRef, CircleCIApi } from './api';
+import { createPlugin } from '@backstage/core';
+import { circleCIRouteRef, circleCIBuildRouteRef } from './route-refs';
+import BuildsPage from './pages/BuildsPage/BuildsPage';
+import BuildWithStepsPage from './pages/BuildWithStepsPage/BuildWithStepsPage';
 
 export const plugin = createPlugin({
   id: 'circleci',
-  apis: [
-    createApiFactory({
-      api: circleCIApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new CircleCIApi({ discoveryApi }),
-    }),
-  ],
+  register({ router }) {
+    router.addRoute(circleCIRouteRef, BuildsPage);
+    router.addRoute(circleCIBuildRouteRef, BuildWithStepsPage);
+  },
 });

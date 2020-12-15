@@ -29,5 +29,3 @@ declare module '@svgr/rollup' {
 }
 
 declare module '@rollup/plugin-yaml';
-
-declare module 'terser-webpack-plugin';

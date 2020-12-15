@@ -21,7 +21,6 @@ import request from 'supertest';
 import { EntitiesCatalog, LocationsCatalog } from '../catalog';
 import { LocationResponse } from '../catalog/types';
 import { HigherOrderOperation } from '../ingestion/types';
-import { EntityFilters } from './EntityFilters';
 import { createRouter } from './router';
 
 describe('createRouter', () => {
@@ -33,8 +32,10 @@ describe('createRouter', () => {
   beforeAll(async () => {
     entitiesCatalog = {
       entities: jest.fn(),
+      entityByUid: jest.fn(),
+      entityByName: jest.fn(),
+      addOrUpdateEntity: jest.fn(),
       removeEntityByUid: jest.fn(),
-      batchAddOrUpdateEntities: jest.fn(),
     };
     locationsCatalog = {
       addLocation: jest.fn(),
@@ -77,24 +78,15 @@ describe('createRouter', () => {
     });
 
     it('parses single and multiple request parameters and passes them down', async () => {
-      entitiesCatalog.entities.mockResolvedValueOnce([]);
-      const response = await request(app).get(
-        '/entities?filter=a=1,a=2,b=3&filter=c=4',
-      );
+      const response = await request(app).get('/entities?a=1&a=&a=3&b=4&c=');
 
       expect(response.status).toEqual(200);
       expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith({
-        anyOf: [
-          {
-            allOf: [
-              { key: 'a', matchValueIn: ['1', '2'] },
-              { key: 'b', matchValueIn: ['3'] },
-            ],
-          },
-          { allOf: [{ key: 'c', matchValueIn: ['4'] }] },
-        ],
-      });
+      expect(entitiesCatalog.entities).toHaveBeenCalledWith([
+        { key: 'a', values: ['1', null, '3'] },
+        { key: 'b', values: ['4'] },
+        { key: 'c', values: [null] },
+      ]);
     });
   });
 
@@ -107,27 +99,23 @@ describe('createRouter', () => {
           name: 'c',
         },
       };
-      entitiesCatalog.entities.mockResolvedValue([entity]);
+      entitiesCatalog.entityByUid.mockResolvedValue(entity);
 
       const response = await request(app).get('/entities/by-uid/zzz');
 
-      expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith(
-        EntityFilters.ofMatchers({ 'metadata.uid': 'zzz' }),
-      );
+      expect(entitiesCatalog.entityByUid).toHaveBeenCalledTimes(1);
+      expect(entitiesCatalog.entityByUid).toHaveBeenCalledWith('zzz');
       expect(response.status).toEqual(200);
       expect(response.body).toEqual(expect.objectContaining(entity));
     });
 
     it('responds with a 404 for missing entities', async () => {
-      entitiesCatalog.entities.mockResolvedValue([]);
+      entitiesCatalog.entityByUid.mockResolvedValue(undefined);
 
       const response = await request(app).get('/entities/by-uid/zzz');
 
-      expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith(
-        EntityFilters.ofMatchers({ 'metadata.uid': 'zzz' }),
-      );
+      expect(entitiesCatalog.entityByUid).toHaveBeenCalledTimes(1);
+      expect(entitiesCatalog.entityByUid).toHaveBeenCalledWith('zzz');
       expect(response.status).toEqual(404);
       expect(response.text).toMatch(/uid/);
     });
@@ -143,35 +131,23 @@ describe('createRouter', () => {
           namespace: 'ns',
         },
       };
-      entitiesCatalog.entities.mockResolvedValue([entity]);
+      entitiesCatalog.entityByName.mockResolvedValue(entity);
 
       const response = await request(app).get('/entities/by-name/k/ns/n');
 
-      expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith(
-        EntityFilters.ofMatchers({
-          kind: 'k',
-          'metadata.namespace': 'ns',
-          'metadata.name': 'n',
-        }),
-      );
+      expect(entitiesCatalog.entityByName).toHaveBeenCalledTimes(1);
+      expect(entitiesCatalog.entityByName).toHaveBeenCalledWith('k', 'ns', 'n');
       expect(response.status).toEqual(200);
       expect(response.body).toEqual(expect.objectContaining(entity));
     });
 
     it('responds with a 404 for missing entities', async () => {
-      entitiesCatalog.entities.mockResolvedValue([]);
+      entitiesCatalog.entityByName.mockResolvedValue(undefined);
 
       const response = await request(app).get('/entities/by-name/b/d/c');
 
-      expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith(
-        EntityFilters.ofMatchers({
-          kind: 'b',
-          'metadata.namespace': 'd',
-          'metadata.name': 'c',
-        }),
-      );
+      expect(entitiesCatalog.entityByName).toHaveBeenCalledTimes(1);
+      expect(entitiesCatalog.entityByName).toHaveBeenCalledWith('b', 'd', 'c');
       expect(response.status).toEqual(404);
       expect(response.text).toMatch(/name/);
     });
@@ -184,7 +160,7 @@ describe('createRouter', () => {
         .set('Content-Type', 'application/json')
         .send();
 
-      expect(entitiesCatalog.batchAddOrUpdateEntities).not.toHaveBeenCalled();
+      expect(entitiesCatalog.addOrUpdateEntity).not.toHaveBeenCalled();
       expect(response.status).toEqual(400);
       expect(response.text).toMatch(/body/);
     });
@@ -199,23 +175,17 @@ describe('createRouter', () => {
         },
       };
 
-      entitiesCatalog.batchAddOrUpdateEntities.mockResolvedValue([
-        { entityId: 'u' },
-      ]);
-      entitiesCatalog.entities.mockResolvedValue([entity]);
+      entitiesCatalog.addOrUpdateEntity.mockResolvedValue(entity);
 
       const response = await request(app)
         .post('/entities')
         .send(entity)
         .set('Content-Type', 'application/json');
 
-      expect(entitiesCatalog.batchAddOrUpdateEntities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.batchAddOrUpdateEntities).toHaveBeenCalledWith([
-        { entity, relations: [] },
-      ]);
-      expect(entitiesCatalog.entities).toHaveBeenCalledTimes(1);
-      expect(entitiesCatalog.entities).toHaveBeenCalledWith(
-        EntityFilters.ofMatchers({ 'metadata.uid': 'u' }),
+      expect(entitiesCatalog.addOrUpdateEntity).toHaveBeenCalledTimes(1);
+      expect(entitiesCatalog.addOrUpdateEntity).toHaveBeenNthCalledWith(
+        1,
+        entity,
       );
       expect(response.status).toEqual(200);
       expect(response.body).toEqual(entity);
@@ -290,36 +260,7 @@ describe('createRouter', () => {
       const response = await request(app).post('/locations').send(spec);
 
       expect(higherOrderOperation.addLocation).toHaveBeenCalledTimes(1);
-      expect(higherOrderOperation.addLocation).toHaveBeenCalledWith(spec, {
-        dryRun: false,
-      });
-      expect(response.status).toEqual(201);
-      expect(response.body).toEqual(
-        expect.objectContaining({
-          location: { id: 'a', ...spec },
-        }),
-      );
-    });
-
-    it('supports dry run', async () => {
-      const spec: LocationSpec = {
-        type: 'b',
-        target: 'c',
-      };
-
-      higherOrderOperation.addLocation.mockResolvedValue({
-        location: { id: 'a', ...spec },
-        entities: [],
-      });
-
-      const response = await request(app)
-        .post('/locations?dryRun=true')
-        .send(spec);
-
-      expect(higherOrderOperation.addLocation).toHaveBeenCalledTimes(1);
-      expect(higherOrderOperation.addLocation).toHaveBeenCalledWith(spec, {
-        dryRun: true,
-      });
+      expect(higherOrderOperation.addLocation).toHaveBeenCalledWith(spec);
       expect(response.status).toEqual(201);
       expect(response.body).toEqual(
         expect.objectContaining({

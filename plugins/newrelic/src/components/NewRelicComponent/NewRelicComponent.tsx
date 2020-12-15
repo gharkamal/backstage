@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { FC } from 'react';
 import { Grid } from '@material-ui/core';
 import {
   Header,
   Page,
+  pageTheme,
   Content,
   ContentHeader,
   HeaderLabel,
@@ -26,8 +27,8 @@ import {
 } from '@backstage/core';
 import NewRelicFetchComponent from '../NewRelicFetchComponent';
 
-const NewRelicComponent = () => (
-  <Page themeId="tool">
+const NewRelicComponent: FC<{}> = () => (
+  <Page theme={pageTheme.tool}>
     <Header title="New Relic">
       <HeaderLabel label="Owner" value="Engineering" />
     </Header>

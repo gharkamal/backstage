@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
-import {
-  Link,
-  Typography,
-  Box,
-  IconButton,
-  Tooltip,
-  Button,
-} from '@material-ui/core';
+import React, { FC } from 'react';
+import { Link, Typography, Box, IconButton, Tooltip } from '@material-ui/core';
 import RetryIcon from '@material-ui/icons/Replay';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import { Link as RouterLink, generatePath } from 'react-router-dom';
-import { EmptyState, Table, TableColumn } from '@backstage/core';
+import { Table, TableColumn } from '@backstage/core';
 import { useWorkflowRuns } from '../useWorkflowRuns';
 import { WorkflowRunStatus } from '../WorkflowRunStatus';
 import SyncIcon from '@material-ui/icons/Sync';
@@ -46,7 +39,6 @@ export type WorkflowRun = {
     };
   };
   status: string;
-  conclusion: string;
   onReRunClick: () => void;
 };
 
@@ -85,7 +77,7 @@ const generatedColumns: TableColumn[] = [
 
     render: (row: Partial<WorkflowRun>) => (
       <Box display="flex" alignItems="center">
-        <WorkflowRunStatus status={row.status} conclusion={row.conclusion} />
+        <WorkflowRunStatus status={row.status} />
       </Box>
     ),
   },
@@ -114,7 +106,7 @@ type Props = {
   onChangePageSize: (pageSize: number) => void;
 };
 
-export const WorkflowRunsTableView = ({
+export const WorkflowRunsTableView: FC<Props> = ({
   projectName,
   loading,
   pageSize,
@@ -124,7 +116,7 @@ export const WorkflowRunsTableView = ({
   onChangePage,
   onChangePageSize,
   total,
-}: Props) => {
+}) => {
   return (
     <Table
       isLoading={loading}
@@ -164,34 +156,15 @@ export const WorkflowRunsTable = ({
 }) => {
   const { value: projectName, loading } = useProjectName(entity);
   const [owner, repo] = (projectName ?? '/').split('/');
-  const [
-    { runs, ...tableProps },
-    { retry, setPage, setPageSize },
-  ] = useWorkflowRuns({
+  const [tableProps, { retry, setPage, setPageSize }] = useWorkflowRuns({
     owner,
     repo,
     branch,
   });
 
-  return !runs ? (
-    <EmptyState
-      missing="data"
-      title="No Workflow Data"
-      description="This component has GitHub Actions enabled, but no data was found. Have you created any Workflows? Click the button below to create a new Workflow."
-      action={
-        <Button
-          variant="contained"
-          color="primary"
-          href={`https://github.com/${projectName}/actions/new`}
-        >
-          Create new Workflow
-        </Button>
-      }
-    />
-  ) : (
+  return (
     <WorkflowRunsTableView
       {...tableProps}
-      runs={runs}
       loading={loading || tableProps.loading}
       retry={retry}
       onChangePageSize={setPageSize}

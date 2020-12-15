@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { RegisterComponentPage } from './RegisterComponentPage';
+export { default } from './RegisterComponentPage';

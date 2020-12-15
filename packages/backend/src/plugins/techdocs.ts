@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
   createRouter,
   DirectoryPreparer,
   Preparers,
   Generators,
+  LocalPublish,
   TechdocsGenerator,
-  CommonGitPreparer,
-  UrlPreparer,
-  Publisher,
+  GithubPreparer,
 } from '@backstage/plugin-techdocs-backend';
 import { PluginEnvironment } from '../types';
 import Docker from 'dockerode';
@@ -29,27 +29,18 @@ import Docker from 'dockerode';
 export default async function createPlugin({
   logger,
   config,
-  discovery,
-  reader,
 }: PluginEnvironment) {
   const generators = new Generators();
-  const techdocsGenerator = new TechdocsGenerator(logger, config);
+  const techdocsGenerator = new TechdocsGenerator(logger);
   generators.register('techdocs', techdocsGenerator);
 
   const preparers = new Preparers();
-
+  const githubPreparer = new GithubPreparer(logger);
   const directoryPreparer = new DirectoryPreparer(logger);
   preparers.register('dir', directoryPreparer);
+  preparers.register('github', githubPreparer);
 
-  const commonGitPreparer = new CommonGitPreparer(logger);
-  preparers.register('github', commonGitPreparer);
-  preparers.register('gitlab', commonGitPreparer);
-  preparers.register('azure/api', commonGitPreparer);
-
-  const urlPreparer = new UrlPreparer(reader, logger);
-  preparers.register('url', urlPreparer);
-
-  const publisher = Publisher.fromConfig(config, logger, discovery);
+  const publisher = new LocalPublish(logger);
 
   const dockerClient = new Docker();
 
@@ -60,6 +51,5 @@ export default async function createPlugin({
     dockerClient,
     logger,
     config,
-    discovery,
   });
 }

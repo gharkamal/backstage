@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { Fragment, ReactElement } from 'react';
+import React, { Component, Fragment, ReactElement } from 'react';
 import { withStyles, createStyles, WithStyles, Theme } from '@material-ui/core';
 import startCase from 'lodash/startCase';
 
@@ -78,7 +78,7 @@ function renderMap(
 }
 
 function toValue(
-  value: ReactElement | object | Array<any> | boolean,
+  value: ReactElement | object | Array<any>,
   options?: any,
   nested?: boolean,
 ) {
@@ -92,10 +92,6 @@ function toValue(
 
   if (Array.isArray(value)) {
     return renderList(value, nested);
-  }
-
-  if (typeof value === 'boolean') {
-    return <Fragment>{value ? '✅' : '❌'}</Fragment>;
   }
 
   return <Fragment>{value}</Fragment>;
@@ -146,17 +142,17 @@ const TableItem = ({
   );
 };
 
-type Props = {
+interface ComponentProps {
   metadata: { [key: string]: any };
   dense?: boolean;
   options?: any;
-};
+}
 
-export const StructuredMetadataTable = ({
-  metadata,
-  dense = true,
-  options,
-}: Props) => {
-  const metadataItems = mapToItems(metadata, options || {});
-  return <MetadataTable dense={dense}>{metadataItems}</MetadataTable>;
-};
+export class StructuredMetadataTable extends Component<ComponentProps> {
+  render() {
+    const { metadata, dense, options } = this.props;
+    const metadataItems = mapToItems(metadata, options || {});
+
+    return <MetadataTable dense={dense}>{metadataItems}</MetadataTable>;
+  }
+}

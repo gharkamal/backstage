@@ -35,9 +35,6 @@ import {
   OAuthHandlers,
   OAuthResponse,
   OAuthEnvironmentHandler,
-  OAuthStartRequest,
-  encodeState,
-  OAuthRefreshRequest,
 } from '../../lib/oauth';
 
 import got from 'got';
@@ -114,11 +111,11 @@ export class MicrosoftAuthProvider implements OAuthHandlers {
     );
   }
 
-  async start(req: OAuthStartRequest): Promise<RedirectInfo> {
-    return await executeRedirectStrategy(req, this._strategy, {
-      scope: req.scope,
-      state: encodeState(req.state),
-    });
+  async start(
+    req: express.Request,
+    options: Record<string, string>,
+  ): Promise<RedirectInfo> {
+    return await executeRedirectStrategy(req, this._strategy, options);
   }
 
   async handler(
@@ -135,11 +132,11 @@ export class MicrosoftAuthProvider implements OAuthHandlers {
     };
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
+  async refresh(refreshToken: string, scope: string): Promise<OAuthResponse> {
     const { accessToken, params } = await executeRefreshTokenStrategy(
       this._strategy,
-      req.refreshToken,
-      req.scope,
+      refreshToken,
+      scope,
     );
 
     const profile = await executeFetchUserProfileStrategy(
@@ -163,7 +160,7 @@ export class MicrosoftAuthProvider implements OAuthHandlers {
     });
   }
 
-  private getUserPhoto(accessToken: string): Promise<string | undefined> {
+  private getUserPhoto(accessToken: string): Promise<string> {
     return new Promise(resolve => {
       got
         .get('https://graph.microsoft.com/v1.0/me/photos/48x48/$value', {
@@ -184,7 +181,7 @@ export class MicrosoftAuthProvider implements OAuthHandlers {
             `Could not retrieve user profile photo from Microsoft Graph API: ${error}`,
           );
           // User profile photo is optional, ignore errors and resolve undefined
-          resolve(undefined);
+          resolve();
         });
     });
   }
@@ -206,12 +203,13 @@ export class MicrosoftAuthProvider implements OAuthHandlers {
 }
 
 export const createMicrosoftProvider: AuthProviderFactory = ({
-  providerId,
   globalConfig,
   config,
   tokenIssuer,
 }) =>
   OAuthEnvironmentHandler.mapConfig(config, envConfig => {
+    const providerId = 'microsoft';
+
     const clientId = envConfig.getString('clientId');
     const clientSecret = envConfig.getString('clientSecret');
     const tenantID = envConfig.getString('tenantId');

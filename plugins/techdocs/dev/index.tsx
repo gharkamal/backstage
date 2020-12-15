@@ -20,13 +20,13 @@ import { TechDocsDevStorageApi } from './api';
 import { techdocsStorageApiRef } from '../src';
 
 createDevApp()
-  .registerApi({
-    api: techdocsStorageApiRef,
+  .registerApiFactory({
     deps: {},
     factory: () =>
       new TechDocsDevStorageApi({
         apiOrigin: 'http://localhost:3000/api',
       }),
+    implements: techdocsStorageApiRef,
   })
   .registerPlugin(plugin)
   .render();

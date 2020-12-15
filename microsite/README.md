@@ -204,8 +204,3 @@ For more information about custom pages, click [here](https://docusaurus.io/docs
 # Full Documentation
 
 Full documentation can be found on the [website](https://docusaurus.io/).
-
-## Additional notes
-
-- If you want to make images zoomable on click, add the `data-zoomable` attribute to your `img` element.
-  - In a docs or blog `.md` file, convert `![This is image](/microsite/static/img/code.png)` syntax to `<img data-zoomable src="/microsite/static/img/code.png" alt="This is image" />`

@@ -14,30 +14,15 @@
  * limitations under the License.
  */
 
-import { ApiEntity } from '@backstage/catalog-model';
-import { createApiFactory, createPlugin } from '@backstage/core';
-import { ApiExplorerPage } from './components/ApiExplorerPage/ApiExplorerPage';
-import { defaultDefinitionWidgets } from './components/ApiDefinitionCard';
-import { rootRoute } from './routes';
-import { apiDocsConfigRef } from './config';
+import { createPlugin } from '@backstage/core';
+import { ApiCatalogPage } from './components/ApiCatalogPage/ApiCatalogPage';
+import { ApiEntityPage } from './components/ApiEntityPage/ApiEntityPage';
+import { entityRoute, rootRoute } from './routes';
 
 export const plugin = createPlugin({
   id: 'api-docs',
-  apis: [
-    createApiFactory({
-      api: apiDocsConfigRef,
-      deps: {},
-      factory: () => {
-        const definitionWidgets = defaultDefinitionWidgets();
-        return {
-          getApiDefinitionWidget: (apiEntity: ApiEntity) => {
-            return definitionWidgets.find(d => d.type === apiEntity.spec.type);
-          },
-        };
-      },
-    }),
-  ],
   register({ router }) {
-    router.addRoute(rootRoute, ApiExplorerPage);
+    router.addRoute(rootRoute, ApiCatalogPage);
+    router.addRoute(entityRoute, ApiEntityPage);
   },
 });

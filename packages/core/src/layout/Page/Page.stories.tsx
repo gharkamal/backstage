@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-import { Box, Chip, Grid, Link, Typography } from '@material-ui/core';
 import React, { useState } from 'react';
-import { MemoryRouter } from 'react-router';
 import {
-  Content,
-  ContentHeader,
   Header,
-  HeaderLabel,
-  HeaderTabs,
-  InfoCard,
   Page,
+  HeaderLabel,
+  ContentHeader,
+  Content,
+  pageTheme,
+  InfoCard,
+  HeaderTabs,
 } from '../';
 import {
-  GaugeCard,
-  StatusOK,
   SupportButton,
   Table,
+  StatusOK,
   TableColumn,
+  ProgressCard,
   TrendLine,
 } from '../../components';
+import { Box, Typography, Link, Chip, Grid } from '@material-ui/core';
 
 export default {
-  title: 'Plugins/Examples',
+  title: 'Example Plugin',
   component: Page,
 };
 
@@ -97,7 +97,7 @@ const columns: TableColumn[] = [
 const tabs = [
   { label: 'Overview' },
   { label: 'CI/CD' },
-  { label: 'Cost Efficiency' },
+  { label: 'Cost Efficency' },
   { label: 'Code Coverage' },
   { label: 'Test' },
   { label: 'Compliance Advisor' },
@@ -119,15 +119,15 @@ const DataGrid = () => (
         justify="space-between"
         direction="row"
       >
-        <Grid item xs={12} md={6}>
-          <GaugeCard
+        <Grid item xs={6}>
+          <ProgressCard
             title="GKE Usage Score"
             subheader="This should be above 75%"
             progress={0.87}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <GaugeCard
+        <Grid item xs={6}>
+          <ProgressCard
             title="Deployment Score"
             subheader="This should be above 40%"
             progress={0.58}
@@ -137,45 +137,45 @@ const DataGrid = () => (
     </Grid>
     <Grid item xs>
       <InfoCard
-        title="Additional Information"
-        deepLink={{ title: 'Learn more about GKE', link: '' }}
+        title="Information Card"
+        deepLink={{ title: 'LEARN MORE ABOUT RIGHTSIZING FOR GKE', link: '' }}
       >
-        <Typography variant="h6">Rightsize GKE deployment</Typography>
-        <Typography paragraph>
+        <b>Rightsize GKE deployment</b>
+        <p>
           Services are considered underutilized in GKE when the average usage of
           requested cores is less than 80%.
-        </Typography>
-        <Typography variant="h6">What can I do?</Typography>
-        <Typography paragraph>
+        </p>
+        <b>What can I do?</b>
+        <p>
           Review requested core and limit settings. Check HPA target scaling
-          settings in <code>hpa.yaml</code>. The recommended value for&nbsp;
-          <code>targetCPUUtilizationPercentage</code> is <code>80</code>.
-        </Typography>
-        <Typography paragraph>
+          settings in hpa.yaml. The recommended value for
+          targetCPUUtilizationPercentage is 80.
+        </p>
+        <p>
           For single pods, there is of course no HPA. But it can also be useful
           to think about a single pod out of a larger deployment, then modify
           based on HPA requirements. Within a pod, each container has its own
           CPU and memory requests and limits.
-        </Typography>
-        <Typography variant="h6">Definitions</Typography>
-        <Typography paragraph>
+        </p>
+        <b>Definitions</b>
+        <p>
           A request is a minimum reserved value; a container will never have
           less than this amount allocated to it, even if it doesn't actually use
           it. Requests are used for determining what nodes to schedule pods on
           (bin-packing). The tension here is between not allocating resources we
           don't need, and having easy-enough access to enough resources to be
           able to function.
-        </Typography>
-        <Typography paragraph>
+        </p>
+        <b>
           Contact <Link>#cost-awareness</Link> for information and support.
-        </Typography>
+        </b>
       </InfoCard>
     </Grid>
   </Grid>
 );
 
 const ExampleHeader = () => (
-  <Header title="Example" subtitle="This is an example plugin">
+  <Header title="Example" subtitle="This an example plugin">
     <HeaderLabel label="Owner" value="Owner" />
     <HeaderLabel label="Lifecycle" value="Lifecycle" />
   </Header>
@@ -186,7 +186,7 @@ const ExampleContentHeader = ({ selectedTab }: { selectedTab?: number }) => (
     title={selectedTab !== undefined ? tabs[selectedTab].label : 'Header'}
   >
     <SupportButton>
-      This Plugin is an example. This text could provide useful information for
+      This Plugin is an example. This text could provide usefull information for
       the user.
     </SupportButton>
   </ContentHeader>
@@ -195,43 +195,37 @@ const ExampleContentHeader = ({ selectedTab }: { selectedTab?: number }) => (
 export const PluginWithData = () => {
   const [selectedTab, setSelectedTab] = useState<number>(2);
   return (
-    <MemoryRouter>
-      <div style={{ border: '1px solid #ddd' }}>
-        <Page themeId="tool">
-          <ExampleHeader />
-          <HeaderTabs
-            selectedIndex={selectedTab}
-            onChange={index => setSelectedTab(index)}
-            tabs={tabs.map(({ label }, index) => ({
-              id: index.toString(),
-              label,
-            }))}
-          />
-          <Content>
-            <ExampleContentHeader selectedTab={selectedTab} />
-            <DataGrid />
-          </Content>
-        </Page>
-      </div>
-    </MemoryRouter>
+    <Page theme={pageTheme.tool}>
+      <ExampleHeader />
+      <HeaderTabs
+        selectedIndex={selectedTab}
+        onChange={index => setSelectedTab(index)}
+        tabs={tabs.map(({ label }, index) => ({
+          id: index.toString(),
+          label,
+        }))}
+      />
+      <Content>
+        <ExampleContentHeader selectedTab={selectedTab} />
+        <DataGrid />
+      </Content>
+    </Page>
   );
 };
 
 export const PluginWithTable = () => {
   return (
-    <div style={{ border: '1px solid #ddd' }}>
-      <Page themeId="tool">
-        <ExampleHeader />
-        <Content>
-          <ExampleContentHeader />
-          <Table
-            options={{ paging: true, padding: 'dense' }}
-            data={generateTestData(10)}
-            columns={columns}
-            title="Example Content"
-          />
-        </Content>
-      </Page>
-    </div>
+    <Page theme={pageTheme.tool}>
+      <ExampleHeader />
+      <Content>
+        <ExampleContentHeader />
+        <Table
+          options={{ paging: true, padding: 'dense' }}
+          data={generateTestData(10)}
+          columns={columns}
+          title="Example Content"
+        />
+      </Content>
+    </Page>
   );
 };

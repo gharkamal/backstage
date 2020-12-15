@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { ErrorApi, ErrorContext, Observable } from '@backstage/core-api';
+import {
+  ErrorApi,
+  ErrorContext,
+  errorApiRef,
+  Observable,
+} from '@backstage/core-api';
 
 type Options = {
   collect?: boolean;
@@ -35,6 +40,12 @@ const nullObservable = {
 };
 
 export class MockErrorApi implements ErrorApi {
+  static factory = {
+    implements: errorApiRef,
+    deps: {},
+    factory: () => new MockErrorApi(),
+  };
+
   private readonly errors = new Array<ErrorWithContext>();
   private readonly waiters = new Set<Waiter>();
 

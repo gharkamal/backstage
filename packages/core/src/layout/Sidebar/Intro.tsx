@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useContext, useState } from 'react';
+import React, { FC, useContext, useState } from 'react';
 import { useLocalStorage } from 'react-use';
 import { Link, Typography, makeStyles, Collapse } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
@@ -74,7 +74,7 @@ type IntroCardProps = {
   onClose: () => void;
 };
 
-export const IntroCard = (props: IntroCardProps) => {
+export const IntroCard: FC<IntroCardProps> = props => {
   const classes = useStyles();
   const { text, onClose } = props;
   const handleClose = () => onClose();
@@ -109,7 +109,7 @@ type SidebarIntroCardProps = {
   onDismiss: () => void;
 };
 
-const SidebarIntroCard = (props: SidebarIntroCardProps) => {
+const SidebarIntroCard: FC<SidebarIntroCardProps> = props => {
   const { text, onDismiss } = props;
   const [collapsing, setCollapsing] = useState(false);
   const startDismissing = () => {
@@ -127,7 +127,7 @@ Keep an eye out for the little star icon (⭐) next to the plugin name and give 
 const recentlyViewedIntroText =
   'And your recently viewed plugins will pop up here!';
 
-export const SidebarIntro = () => {
+export const SidebarIntro: FC = () => {
   const { isOpen } = useContext(SidebarContext);
   const defaultValue = {
     starredItemsDismissed: false,

@@ -1,7 +1,7 @@
 ---
 id: adrs-adr001
 title: ADR001: Architecture Decision Record (ADR) log
-description: Architecture Decision Record (ADR) logs as a reference point for the team
+sidebar_label: ADR001
 ---
 
 | Created    | Status |

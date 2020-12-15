@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EntityName } from '@backstage/catalog-model';
+
 import type { Transformer } from './index';
 import { TechDocsStorage } from '../../api';
+import { ParsedEntityId } from '../../types';
 
 type AddBaseUrlOptions = {
   techdocsStorageApi: TechDocsStorage;
-  entityId: EntityName;
+  entityId: ParsedEntityId;
   path: string;
 };
 

@@ -17,7 +17,7 @@
 import { makeStyles } from '@material-ui/core';
 import { BackstageTheme } from '@backstage/theme';
 import classNames from 'classnames';
-import React, { PropsWithChildren } from 'react';
+import React, { FC } from 'react';
 
 const useStyles = makeStyles<BackstageTheme>(theme => ({
   status: {
@@ -63,40 +63,26 @@ const useStyles = makeStyles<BackstageTheme>(theme => ({
   },
 }));
 
-export const StatusOK = (props: PropsWithChildren<{}>) => {
+export const StatusOK: FC<{}> = props => {
+  const classes = useStyles(props);
+  return <span className={classNames(classes.status, classes.ok)} {...props} />;
+};
+
+export const StatusWarning: FC<{}> = props => {
   const classes = useStyles(props);
   return (
-    <span
-      className={classNames(classes.status, classes.ok)}
-      aria-label="Status ok"
-      {...props}
-    />
+    <span className={classNames(classes.status, classes.warning)} {...props} />
   );
 };
 
-export const StatusWarning = (props: PropsWithChildren<{}>) => {
+export const StatusError: FC<{}> = props => {
   const classes = useStyles(props);
   return (
-    <span
-      className={classNames(classes.status, classes.warning)}
-      aria-label="Status warning"
-      {...props}
-    />
+    <span className={classNames(classes.status, classes.error)} {...props} />
   );
 };
 
-export const StatusError = (props: PropsWithChildren<{}>) => {
-  const classes = useStyles(props);
-  return (
-    <span
-      className={classNames(classes.status, classes.error)}
-      aria-label="Status error"
-      {...props}
-    />
-  );
-};
-
-export const StatusPending = (props: PropsWithChildren<{}>) => {
+export const StatusPending: FC<{}> = props => {
   const classes = useStyles(props);
   return (
     <span
@@ -107,7 +93,7 @@ export const StatusPending = (props: PropsWithChildren<{}>) => {
   );
 };
 
-export const StatusRunning = (props: PropsWithChildren<{}>) => {
+export const StatusRunning: FC<{}> = props => {
   const classes = useStyles(props);
   return (
     <span
@@ -118,7 +104,7 @@ export const StatusRunning = (props: PropsWithChildren<{}>) => {
   );
 };
 
-export const StatusAborted = (props: PropsWithChildren<{}>) => {
+export const StatusAborted: FC<{}> = props => {
   const classes = useStyles(props);
   return (
     <span

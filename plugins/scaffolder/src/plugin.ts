@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-import {
-  createPlugin,
-  createApiFactory,
-  discoveryApiRef,
-} from '@backstage/core';
+import { createPlugin } from '@backstage/core';
 import { ScaffolderPage } from './components/ScaffolderPage';
 import { TemplatePage } from './components/TemplatePage';
 import { rootRoute, templateRoute } from './routes';
-import { scaffolderApiRef, ScaffolderApi } from './api';
 
 export const plugin = createPlugin({
   id: 'scaffolder',
-  apis: [
-    createApiFactory({
-      api: scaffolderApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new ScaffolderApi({ discoveryApi }),
-    }),
-  ],
   register({ router }) {
     router.addRoute(rootRoute, ScaffolderPage);
     router.addRoute(templateRoute, TemplatePage);

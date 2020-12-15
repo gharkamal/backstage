@@ -66,7 +66,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  definition: string;
+  definition: any;
 };
 
 export const OpenApiDefinitionWidget = ({ definition }: Props) => {

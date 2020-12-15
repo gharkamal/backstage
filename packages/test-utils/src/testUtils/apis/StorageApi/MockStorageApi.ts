@@ -17,6 +17,7 @@
 import {
   Observable,
   StorageApi,
+  storageApiRef,
   StorageValueChange,
 } from '@backstage/core-api';
 import ObservableImpl from 'zen-observable';
@@ -24,6 +25,12 @@ import ObservableImpl from 'zen-observable';
 export type MockStorageBucket = { [key: string]: any };
 
 export class MockStorageApi implements StorageApi {
+  static factory = {
+    implements: storageApiRef,
+    deps: {},
+    factory: () => MockStorageApi.create(),
+  };
+
   private readonly namespace: string;
   private readonly data: MockStorageBucket;
 

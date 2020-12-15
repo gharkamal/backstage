@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createApiRef, ApiRef } from '../system';
+import { createApiRef } from '../ApiRef';
 import { Observable } from '../../types';
 
 export type AlertMessage = {
@@ -38,7 +38,7 @@ export type AlertApi = {
   alert$(): Observable<AlertMessage>;
 };
 
-export const alertApiRef: ApiRef<AlertApi> = createApiRef({
+export const alertApiRef = createApiRef<AlertApi>({
   id: 'core.alert',
   description: 'Used to report alerts and forward them to the app',
 });

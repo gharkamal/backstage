@@ -17,48 +17,33 @@
 import express from 'express';
 import Router from 'express-promise-router';
 import cookieParser from 'cookie-parser';
+import Knex from 'knex';
 import { Logger } from 'winston';
-import {
-  defaultAuthProviderFactories,
-  AuthProviderFactory,
-} from '../providers';
-import {
-  NotFoundError,
-  PluginDatabaseManager,
-  PluginEndpointDiscovery,
-} from '@backstage/backend-common';
-import { CatalogClient } from '@backstage/catalog-client';
+import { createAuthProviderRouter } from '../providers';
 import { Config } from '@backstage/config';
-import { createOidcRouter, DatabaseKeyStore, TokenFactory } from '../identity';
-import session from 'express-session';
-import passport from 'passport';
-
-type ProviderFactories = { [s: string]: AuthProviderFactory };
+import { DatabaseKeyStore, TokenFactory, createOidcRouter } from '../identity';
+import { NotFoundError } from '@backstage/backend-common';
 
 export interface RouterOptions {
   logger: Logger;
-  database: PluginDatabaseManager;
+  database: Knex;
   config: Config;
-  discovery: PluginEndpointDiscovery;
-  providerFactories?: ProviderFactories;
 }
 
-export async function createRouter({
-  logger,
-  config,
-  discovery,
-  database,
-  providerFactories,
-}: RouterOptions): Promise<express.Router> {
+export async function createRouter(
+  options: RouterOptions,
+): Promise<express.Router> {
   const router = Router();
+  const logger = options.logger.child({ plugin: 'auth' });
 
-  const appUrl = config.getString('app.baseUrl');
-  const authUrl = await discovery.getExternalBaseUrl('auth');
+  const appUrl = options.config.getString('app.baseUrl');
+  const backendUrl = options.config.getString('backend.baseUrl');
+  const authUrl = `${backendUrl}/auth`;
 
   const keyDurationSeconds = 3600;
 
   const keyStore = await DatabaseKeyStore.create({
-    database: await database.getClient(),
+    database: options.database,
   });
   const tokenIssuer = new TokenFactory({
     issuer: authUrl,
@@ -66,59 +51,26 @@ export async function createRouter({
     keyDurationSeconds,
     logger: logger.child({ component: 'token-factory' }),
   });
-  const catalogApi = new CatalogClient({ discoveryApi: discovery });
 
-  const secret = config.getOptionalString('auth.session.secret');
-  if (secret) {
-    router.use(cookieParser(secret));
-    // TODO: Configure the server-side session storage.  The default MemoryStore is not designed for production
-    router.use(session({ secret, saveUninitialized: false, resave: false }));
-    router.use(passport.initialize());
-    router.use(passport.session());
-  } else {
-    router.use(cookieParser());
-  }
+  router.use(cookieParser());
   router.use(express.urlencoded({ extended: false }));
   router.use(express.json());
 
-  const allProviderFactories = {
-    ...defaultAuthProviderFactories,
-    ...providerFactories,
-  };
-  const providersConfig = config.getConfig('auth.providers');
+  const providersConfig = options.config.getConfig('auth.providers');
   const providers = providersConfig.keys();
 
   for (const providerId of providers) {
     logger.info(`Configuring provider, ${providerId}`);
     try {
-      const providerFactory = allProviderFactories[providerId];
-      if (!providerFactory) {
-        throw Error(`No auth provider available for '${providerId}'`);
-      }
-
-      const provider = providerFactory({
+      const providerConfig = providersConfig.getConfig(providerId);
+      const providerRouter = createAuthProviderRouter(
         providerId,
-        globalConfig: { baseUrl: authUrl, appUrl },
-        config: providersConfig.getConfig(providerId),
+        { baseUrl: authUrl, appUrl },
+        providerConfig,
         logger,
         tokenIssuer,
-        discovery,
-        catalogApi,
-      });
-
-      const r = Router();
-
-      r.get('/start', provider.start.bind(provider));
-      r.get('/handler/frame', provider.frameHandler.bind(provider));
-      r.post('/handler/frame', provider.frameHandler.bind(provider));
-      if (provider.logout) {
-        r.post('/logout', provider.logout.bind(provider));
-      }
-      if (provider.refresh) {
-        r.get('/refresh', provider.refresh.bind(provider));
-      }
-
-      router.use(`/${providerId}`, r);
+      );
+      router.use(`/${providerId}`, providerRouter);
     } catch (e) {
       if (process.env.NODE_ENV !== 'development') {
         throw new Error(

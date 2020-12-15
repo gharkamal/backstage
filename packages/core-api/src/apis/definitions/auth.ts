@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { ApiRef, createApiRef } from '../system';
-import { Observable } from '../../types';
+import { createApiRef } from '../ApiRef';
+import { Observable } from '../..';
 
 /**
  * This file contains declarations for common interfaces of auth-related APIs.
@@ -90,6 +90,11 @@ export type OAuthApi = {
     scope?: OAuthScope,
     options?: AuthRequestOptions,
   ): Promise<string>;
+
+  /**
+   * Log out the user's session. This will reload the page.
+   */
+  logout(): Promise<void>;
 };
 
 /**
@@ -109,6 +114,11 @@ export type OpenIdConnectApi = {
    * The returned promise can be rejected, but only if the user rejects the login request.
    */
   getIdToken(options?: AuthRequestOptions): Promise<string>;
+
+  /**
+   * Log out the user's session. This will reload the page.
+   */
+  logout(): Promise<void>;
 };
 
 /**
@@ -177,7 +187,7 @@ export type ProfileInfo = {
 };
 
 /**
- * Session state values passed to subscribers of the SessionApi.
+ * Session state values passed to subscribers of the SessionStateApi.
  */
 export enum SessionState {
   SignedIn = 'SignedIn',
@@ -185,22 +195,10 @@ export enum SessionState {
 }
 
 /**
- * The SessionApi provides basic controls for any auth provider that is tied to a persistent session.
+ * This API provides access to an sessionState$ observable which provides an update when the
+ * user performs a sign in or sign out from an auth provider.
  */
-export type SessionApi = {
-  /**
-   * Sign in with a minimum set of permissions.
-   */
-  signIn(): Promise<void>;
-
-  /**
-   * Sign out from the current session. This will reload the page.
-   */
-  signOut(): Promise<void>;
-
-  /**
-   * Observe the current state of the auth session. Emits the current state on subscription.
-   */
+export type SessionStateApi = {
   sessionState$(): Observable<SessionState>;
 };
 
@@ -212,13 +210,13 @@ export type SessionApi = {
  * Note that the ID token payload is only guaranteed to contain the user's numerical Google ID,
  * email and expiration information. Do not rely on any other fields, as they might not be present.
  */
-export const googleAuthApiRef: ApiRef<
+export const googleAuthApiRef = createApiRef<
   OAuthApi &
     OpenIdConnectApi &
     ProfileInfoApi &
     BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
+    SessionStateApi
+>({
   id: 'core.auth.google',
   description: 'Provides authentication towards Google APIs and identities',
 });
@@ -229,9 +227,9 @@ export const googleAuthApiRef: ApiRef<
  * See https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/
  * for a full list of supported scopes.
  */
-export const githubAuthApiRef: ApiRef<
-  OAuthApi & ProfileInfoApi & BackstageIdentityApi & SessionApi
-> = createApiRef({
+export const githubAuthApiRef = createApiRef<
+  OAuthApi & ProfileInfoApi & BackstageIdentityApi & SessionStateApi
+>({
   id: 'core.auth.github',
   description: 'Provides authentication towards GitHub APIs',
 });
@@ -242,13 +240,13 @@ export const githubAuthApiRef: ApiRef<
  * See https://developer.okta.com/docs/guides/implement-oauth-for-okta/scopes/
  * for a full list of supported scopes.
  */
-export const oktaAuthApiRef: ApiRef<
+export const oktaAuthApiRef = createApiRef<
   OAuthApi &
     OpenIdConnectApi &
     ProfileInfoApi &
     BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
+    SessionStateApi
+>({
   id: 'core.auth.okta',
   description: 'Provides authentication towards Okta APIs',
 });
@@ -259,9 +257,9 @@ export const oktaAuthApiRef: ApiRef<
  * See https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#limiting-scopes-of-a-personal-access-token
  * for a full list of supported scopes.
  */
-export const gitlabAuthApiRef: ApiRef<
-  OAuthApi & ProfileInfoApi & BackstageIdentityApi & SessionApi
-> = createApiRef({
+export const gitlabAuthApiRef = createApiRef<
+  OAuthApi & ProfileInfoApi & BackstageIdentityApi & SessionStateApi
+>({
   id: 'core.auth.gitlab',
   description: 'Provides authentication towards GitLab APIs',
 });
@@ -272,9 +270,9 @@ export const gitlabAuthApiRef: ApiRef<
  * See https://auth0.com/docs/scopes/current/oidc-scopes
  * for a full list of supported scopes.
  */
-export const auth0AuthApiRef: ApiRef<
-  OpenIdConnectApi & ProfileInfoApi & BackstageIdentityApi & SessionApi
-> = createApiRef({
+export const auth0AuthApiRef = createApiRef<
+  OpenIdConnectApi & ProfileInfoApi & BackstageIdentityApi & SessionStateApi
+>({
   id: 'core.auth.auth0',
   description: 'Provides authentication towards Auth0 APIs',
 });
@@ -286,13 +284,13 @@ export const auth0AuthApiRef: ApiRef<
  * - https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent
  * - https://docs.microsoft.com/en-us/graph/permissions-reference
  */
-export const microsoftAuthApiRef: ApiRef<
+export const microsoftAuthApiRef = createApiRef<
   OAuthApi &
     OpenIdConnectApi &
     ProfileInfoApi &
     BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
+    SessionStateApi
+>({
   id: 'core.auth.microsoft',
   description: 'Provides authentication towards Microsoft APIs and identities',
 });
@@ -300,48 +298,9 @@ export const microsoftAuthApiRef: ApiRef<
 /**
  * Provides authentication for custom identity providers.
  */
-export const oauth2ApiRef: ApiRef<
-  OAuthApi &
-    OpenIdConnectApi &
-    ProfileInfoApi &
-    BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
+export const oauth2ApiRef = createApiRef<
+  OAuthApi & OpenIdConnectApi & ProfileInfoApi & SessionStateApi
+>({
   id: 'core.auth.oauth2',
   description: 'Example of how to use oauth2 custom provider',
-});
-
-/**
- * Provides authentication for custom OpenID Connect identity providers.
- */
-export const oidcAuthApiRef: ApiRef<
-  OAuthApi &
-    OpenIdConnectApi &
-    ProfileInfoApi &
-    BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
-  id: 'core.auth.oidc',
-  description: 'Example of how to use oidc custom provider',
-});
-
-/**
- * Provides authentication for saml based identity providers
- */
-export const samlAuthApiRef: ApiRef<
-  ProfileInfoApi & BackstageIdentityApi & SessionApi
-> = createApiRef({
-  id: 'core.auth.saml',
-  description: 'Example of how to use SAML custom provider',
-});
-
-export const oneloginAuthApiRef: ApiRef<
-  OAuthApi &
-    OpenIdConnectApi &
-    ProfileInfoApi &
-    BackstageIdentityApi &
-    SessionApi
-> = createApiRef({
-  id: 'core.auth.onelogin',
-  description: 'Provides authentication towards OneLogin APIs and identities',
 });

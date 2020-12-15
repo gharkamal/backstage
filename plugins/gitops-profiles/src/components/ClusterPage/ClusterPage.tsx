@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { useEffect, useState } from 'react';
+
+import React, { FC, useEffect, useState } from 'react';
 import {
   Content,
   Header,
   Page,
+  pageTheme,
   Table,
   Progress,
   HeaderLabel,
@@ -30,7 +32,7 @@ import { useParams } from 'react-router-dom';
 import { gitOpsApiRef, Status } from '../../api';
 import { transformRunStatus } from '../ProfileCatalog';
 
-const ClusterPage = () => {
+const ClusterPage: FC<{}> = () => {
   const params = useParams() as { owner: string; repo: string };
 
   const [pollingLog, setPollingLog] = useState(true);
@@ -83,7 +85,7 @@ const ClusterPage = () => {
   }, [pollingLog, api, params, githubAuth, githubAccessToken, githubUsername]);
 
   return (
-    <Page themeId="home">
+    <Page theme={pageTheme.home}>
       <Header title={`Cluster ${params.owner}/${params.repo}`}>
         <HeaderLabel label="Welcome" value={githubUsername} />
       </Header>

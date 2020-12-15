@@ -15,16 +15,18 @@
  */
 
 import React from 'react';
-import { renderInTestApp } from '@backstage/test-utils';
+import { render } from '@testing-library/react';
+import { wrapInTestApp } from '@backstage/test-utils';
 import { BottomLink } from './BottomLink';
 
 const minProps = {
   title: 'A deepLink title',
   link: '/mocked',
 };
+
 describe('<BottomLink />', () => {
-  it('renders without exploding', async () => {
-    const rendered = await renderInTestApp(<BottomLink {...minProps} />);
+  it('renders without exploding', () => {
+    const rendered = render(wrapInTestApp(<BottomLink {...minProps} />));
     expect(rendered.getByText('A deepLink title')).toBeInTheDocument();
   });
 });

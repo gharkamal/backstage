@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import os from 'os';
 import fs from 'fs-extra';
 import YAML from 'yaml';
 import { FilePreparer } from './file';
@@ -23,7 +22,6 @@ import {
   TemplateEntityV1alpha1,
   LOCATION_ANNOTATION,
 } from '@backstage/catalog-model';
-import { getVoidLogger } from '@backstage/backend-common';
 
 const setupTest = async (fixturePath: string) => {
   const locationForTemplateYaml = path.resolve(
@@ -44,10 +42,7 @@ const setupTest = async (fixturePath: string) => {
   };
 
   const filePreparer = new FilePreparer();
-  const resultDir = await filePreparer.prepare(template, {
-    logger: getVoidLogger(),
-    workingDirectory: os.tmpdir(),
-  });
+  const resultDir = await filePreparer.prepare(template);
 
   return { filePreparer, template, resultDir };
 };

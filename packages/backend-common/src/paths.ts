@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/camelcase */
+
 import { resolve as resolvePath } from 'path';
 
 /**

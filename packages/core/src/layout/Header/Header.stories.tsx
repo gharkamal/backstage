@@ -16,10 +16,10 @@
 import React from 'react';
 import { Header } from '.';
 import { HeaderLabel } from '../HeaderLabel';
-import { Page } from '../Page';
+import { Page, pageTheme } from '../Page';
 
 export default {
-  title: 'Layout/Header',
+  title: 'Header',
   component: Header,
 };
 
@@ -32,7 +32,7 @@ const labels = (
 );
 
 export const Home = () => (
-  <Page themeId="home">
+  <Page theme={pageTheme.home}>
     <Header title="Start/Home Page" type="home">
       {labels}
     </Header>
@@ -46,7 +46,7 @@ export const HomeWithSubtitle = () => (
 );
 
 export const Tool = () => (
-  <Page themeId="tool">
+  <Page theme={pageTheme.tool}>
     <Header title="Stand-alone tool" type="tool">
       {labels}
     </Header>
@@ -54,7 +54,7 @@ export const Tool = () => (
 );
 
 export const Service = () => (
-  <Page themeId="service">
+  <Page theme={pageTheme.service}>
     <Header title="Service component page" type="service">
       {labels}
     </Header>
@@ -62,7 +62,7 @@ export const Service = () => (
 );
 
 export const Website = () => (
-  <Page themeId="website">
+  <Page theme={pageTheme.website}>
     <Header title="Website component page" type="website">
       {labels}
     </Header>
@@ -70,7 +70,7 @@ export const Website = () => (
 );
 
 export const Library = () => (
-  <Page themeId="library">
+  <Page theme={pageTheme.library}>
     <Header title="Library component page" type="library">
       {labels}
     </Header>
@@ -78,7 +78,7 @@ export const Library = () => (
 );
 
 export const App = () => (
-  <Page themeId="app">
+  <Page theme={pageTheme.app}>
     <Header title="App component page" type="app">
       {labels}
     </Header>
@@ -86,7 +86,7 @@ export const App = () => (
 );
 
 export const Documentation = () => (
-  <Page themeId="documentation">
+  <Page theme={pageTheme.documentation}>
     <Header title="Documentation component page" type="documentation">
       {labels}
     </Header>
@@ -94,7 +94,7 @@ export const Documentation = () => (
 );
 
 export const Other = () => (
-  <Page themeId="other">
+  <Page theme={pageTheme.other}>
     <Header title="Other/generic component page" type="other">
       {labels}
     </Header>

@@ -37,7 +37,6 @@ export async function generate(
     );
   }
 
-  /* eslint-disable-next-line no-restricted-syntax */
   const rootDir = resolvePath(__dirname, '../../..');
   const srcDir = resolvePath(rootDir, 'packages', 'core-api', 'src');
   const targetDir = resolvePath(targetPath);

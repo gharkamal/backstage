@@ -76,7 +76,13 @@ export default class TypeLocator {
           return;
         }
 
-        docMap.get(decl.constructorType)!.push({ node, source, ...decl });
+        docMap.get(decl.constructorType)!.push({
+          node,
+          name: decl.name,
+          source,
+          args: Array.from(decl.initializer.arguments || []),
+          typeArgs: Array.from(decl.initializer.typeArguments || []),
+        });
       });
     });
 
@@ -97,8 +103,7 @@ export default class TypeLocator {
   ):
     | {
         constructorType: ts.Type;
-        args: ts.Expression[];
-        typeArgs: ts.TypeNode[];
+        initializer: ts.CallExpression | ts.NewExpression;
         name: string;
       }
     | undefined {
@@ -132,14 +137,6 @@ export default class TypeLocator {
     const constructorType = this.checker.getTypeAtLocation(
       initializer.expression,
     );
-    const args = Array.from(initializer.arguments ?? []);
-    const typeNode = declaration.type;
-    const typeArgs = Array.from(
-      (typeNode && ts.isTypeReferenceNode(typeNode)
-        ? typeNode.typeArguments
-        : initializer.typeArguments) ?? [],
-    );
-
-    return { constructorType, args, typeArgs, name: name.text };
+    return { constructorType, initializer, name: name.text };
   }
 }

@@ -29,7 +29,6 @@ export const rollbarApiRef = createApiRef<RollbarApi>({
 
 export interface RollbarApi {
   getAllProjects(): Promise<RollbarProject[]>;
-  getProject(projectName: string): Promise<RollbarProject>;
   getTopActiveItems(
     project: string,
     hours?: number,

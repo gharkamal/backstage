@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
+export * from './types';
 export { default as OktaAuth } from './OktaAuth';

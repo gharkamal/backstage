@@ -13,38 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Entity } from '@backstage/catalog-model';
-import { Link } from '@backstage/core';
+import React from 'react';
+import { useWorkflowRunsDetails } from './useWorkflowRunsDetails';
+import { useWorkflowRunJobs } from './useWorkflowRunJobs';
+import { useProjectName } from '../useProjectName';
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Breadcrumbs,
-  CircularProgress,
-  LinearProgress,
-  Link as MaterialLink,
-  ListItemText,
   makeStyles,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
+  Box,
   TableRow,
-  Theme,
+  TableCell,
+  ListItemText,
+  ExpansionPanel,
+  ExpansionPanelSummary,
   Typography,
+  ExpansionPanelDetails,
+  TableContainer,
+  Table,
+  Paper,
+  TableBody,
+  LinearProgress,
+  CircularProgress,
+  Theme,
+  Breadcrumbs,
+  Link as MaterialLink,
 } from '@material-ui/core';
+import { Jobs, Job, Step } from '../../api';
+import moment from 'moment';
+import { WorkflowRunStatus } from '../WorkflowRunStatus';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExternalLinkIcon from '@material-ui/icons/Launch';
-import moment from 'moment';
-import React from 'react';
-import { Job, Jobs, Step } from '../../api';
-import { useProjectName } from '../useProjectName';
-import { WorkflowRunStatus } from '../WorkflowRunStatus';
-import { useWorkflowRunJobs } from './useWorkflowRunJobs';
-import { useWorkflowRunsDetails } from './useWorkflowRunsDetails';
-import { WorkflowRunLogs } from '../WorkflowRunLogs';
+import { Entity } from '@backstage/catalog-model';
+import { Link } from '@backstage/core';
 
 const useStyles = makeStyles<Theme>(theme => ({
   root: {
@@ -57,7 +56,7 @@ const useStyles = makeStyles<Theme>(theme => ({
   table: {
     padding: theme.spacing(1),
   },
-  accordionDetails: {
+  expansionPanelDetails: {
     padding: 0,
   },
   button: {
@@ -71,20 +70,18 @@ const useStyles = makeStyles<Theme>(theme => ({
   },
 }));
 
-const JobsList = ({ jobs, entity }: { jobs?: Jobs; entity: Entity }) => {
+const JobsList = ({ jobs }: { jobs?: Jobs }) => {
   const classes = useStyles();
   return (
     <Box>
       {jobs &&
         jobs.total_count > 0 &&
-        jobs.jobs.map(job => (
+        jobs.jobs.map((job: Job) => (
           <JobListItem
-            key={job.id}
             job={job}
             className={
               job.status !== 'success' ? classes.failed : classes.success
             }
-            entity={entity}
           />
         ))}
     </Box>
@@ -107,28 +104,20 @@ const StepView = ({ step }: { step: Step }) => {
         />
       </TableCell>
       <TableCell>
-        <WorkflowRunStatus
-          status={step.status.toUpperCase()}
-          conclusion={step.conclusion?.toUpperCase()}
-        />
+        <WorkflowRunStatus status={step.status.toUpperCase()} />
       </TableCell>
     </TableRow>
   );
 };
 
-const JobListItem = ({
-  job,
-  className,
-  entity,
-}: {
-  job: Job;
-  className: string;
-  entity: Entity;
-}) => {
+const JobListItem = ({ job, className }: { job: Job; className: string }) => {
   const classes = useStyles();
   return (
-    <Accordion TransitionProps={{ unmountOnExit: true }} className={className}>
-      <AccordionSummary
+    <ExpansionPanel
+      TransitionProps={{ unmountOnExit: true }}
+      className={className}
+    >
+      <ExpansionPanelSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${name}-content`}
         id={`panel-${name}-header`}
@@ -139,22 +128,17 @@ const JobListItem = ({
         <Typography variant="button">
           {job.name} ({getElapsedTime(job.started_at, job.completed_at)})
         </Typography>
-      </AccordionSummary>
-      <AccordionDetails className={classes.accordionDetails}>
+      </ExpansionPanelSummary>
+      <ExpansionPanelDetails className={classes.expansionPanelDetails}>
         <TableContainer>
           <Table>
-            {job.steps.map(step => (
-              <StepView key={step.number} step={step} />
+            {job.steps.map((step: Step) => (
+              <StepView step={step} />
             ))}
           </Table>
         </TableContainer>
-      </AccordionDetails>
-      {job.status === 'queued' || job.status === 'in_progress' ? (
-        <WorkflowRunLogs runId={job.id} inProgress entity={entity} />
-      ) : (
-        <WorkflowRunLogs runId={job.id} inProgress={false} entity={entity} />
-      )}
-    </Accordion>
+      </ExpansionPanelDetails>
+    </ExpansionPanel>
   );
 };
 
@@ -208,10 +192,7 @@ export const WorkflowRunDetails = ({ entity }: { entity: Entity }) => {
                 <Typography noWrap>Status</Typography>
               </TableCell>
               <TableCell>
-                <WorkflowRunStatus
-                  status={details.value?.status}
-                  conclusion={details.value?.conclusion}
-                />
+                <WorkflowRunStatus status={details.value?.status} />
               </TableCell>
             </TableRow>
             <TableRow>
@@ -239,7 +220,7 @@ export const WorkflowRunDetails = ({ entity }: { entity: Entity }) => {
                 {jobs.loading ? (
                   <CircularProgress />
                 ) : (
-                  <JobsList jobs={jobs.value} entity={entity} />
+                  <JobsList jobs={jobs.value} />
                 )}
               </TableCell>
             </TableRow>

@@ -5,19 +5,18 @@ metadata:
   title: Documentation Template
   description: Create a new standalone documentation project
   tags:
-    - recommended
+    - experimental
     - techdocs
     - mkdocs
 spec:
-  owner: backstage/techdocs-core
+  owner: spotify/techdocs-core
   templater: cookiecutter
   type: documentation
   path: '.'
-
+  
   schema:
-    required:
+    required: 
       - component_id
-      - description
     properties:
       component_id:
         title: Name
@@ -26,4 +25,5 @@ spec:
       description:
         title: Description
         type: string
-        description: Help others understand what these docs are about.
+        description: Description of the component
+   

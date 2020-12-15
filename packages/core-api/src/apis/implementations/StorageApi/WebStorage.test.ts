@@ -63,7 +63,7 @@ describe('WebStorage Storage API', () => {
     const selectedKeyNextHandler = jest.fn();
     const mockData = { hello: 'im a great new value' };
 
-    await new Promise<void>(resolve => {
+    await new Promise(resolve => {
       storage.observe$<String>('correctKey').subscribe({
         next: (...args) => {
           selectedKeyNextHandler(...args);
@@ -93,7 +93,7 @@ describe('WebStorage Storage API', () => {
 
     storage.set('correctKey', mockData);
 
-    await new Promise<void>(resolve => {
+    await new Promise(resolve => {
       storage.observe$('correctKey').subscribe({
         next: (...args) => {
           selectedKeyNextHandler(...args);

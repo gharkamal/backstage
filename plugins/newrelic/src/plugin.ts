@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  createApiFactory,
-  createPlugin,
-  createRouteRef,
-  discoveryApiRef,
-} from '@backstage/core';
-import { NewRelicClient, newRelicApiRef } from './api';
+import { createPlugin, createRouteRef } from '@backstage/core';
 import NewRelicComponent from './components/NewRelicComponent';
 
 export const rootRouteRef = createRouteRef({
@@ -30,13 +24,6 @@ export const rootRouteRef = createRouteRef({
 
 export const plugin = createPlugin({
   id: 'newrelic',
-  apis: [
-    createApiFactory({
-      api: newRelicApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new NewRelicClient({ discoveryApi }),
-    }),
-  ],
   register({ router }) {
     router.addRoute(rootRouteRef, NewRelicComponent);
   },

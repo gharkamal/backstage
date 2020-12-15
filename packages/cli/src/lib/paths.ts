@@ -16,5 +16,4 @@
 
 import { findPaths } from '@backstage/cli-common';
 
-/* eslint-disable-next-line no-restricted-syntax */
 export const paths = findPaths(__dirname);

@@ -35,7 +35,7 @@ jobs:
       working-directory: .
       run: |
         yarn install
-        yarn build
+        yarn build --if-present
         yarn test
       env:
         CI: true

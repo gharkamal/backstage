@@ -17,14 +17,13 @@
 import { LocationSpec } from '@backstage/catalog-model';
 import fs from 'fs-extra';
 import * as result from './results';
-import { CatalogProcessor, CatalogProcessorEmit } from './types';
-import { parseEntityYaml } from './util/parse';
+import { LocationProcessor, LocationProcessorEmit } from './types';
 
-export class FileReaderProcessor implements CatalogProcessor {
+export class FileReaderProcessor implements LocationProcessor {
   async readLocation(
     location: LocationSpec,
     optional: boolean,
-    emit: CatalogProcessorEmit,
+    emit: LocationProcessorEmit,
   ): Promise<boolean> {
     if (location.type !== 'file') {
       return false;
@@ -34,10 +33,7 @@ export class FileReaderProcessor implements CatalogProcessor {
       const exists = await fs.pathExists(location.target);
       if (exists) {
         const data = await fs.readFile(location.target);
-
-        for (const parseResult of parseEntityYaml(data, location)) {
-          emit(parseResult);
-        }
+        emit(result.data(location, data));
       } else if (!optional) {
         const message = `${location.type} ${location.target} does not exist`;
         emit(result.notFoundError(location, message));

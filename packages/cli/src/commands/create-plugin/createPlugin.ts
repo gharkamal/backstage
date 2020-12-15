@@ -19,28 +19,39 @@ import { promisify } from 'util';
 import chalk from 'chalk';
 import inquirer, { Answers, Question } from 'inquirer';
 import { exec as execCb } from 'child_process';
-import { resolve as resolvePath, join as joinPath } from 'path';
+import { resolve as resolvePath } from 'path';
 import os from 'os';
-import { Command } from 'commander';
 import {
   parseOwnerIds,
   addCodeownersEntry,
   getCodeownersFilePath,
 } from '../../lib/codeowners';
 import { paths } from '../../lib/paths';
-import { packageVersions } from '../../lib/version';
 import { Task, templatingTask } from '../../lib/tasks';
+import { version as backstageVersion } from '../../lib/version';
 
 const exec = promisify(execCb);
 
-async function checkExists(destination: string) {
-  await Task.forItem('checking', destination, async () => {
+async function checkExists(rootDir: string, id: string) {
+  await Task.forItem('checking', id, async () => {
+    const destination = resolvePath(rootDir, 'plugins', id);
+
     if (await fs.pathExists(destination)) {
-      const existing = chalk.cyan(
-        destination.replace(`${paths.targetRoot}/`, ''),
-      );
+      const existing = chalk.cyan(destination.replace(`${rootDir}/`, ''));
       throw new Error(
         `A plugin with the same name already exists: ${existing}\nPlease try again with a different plugin ID`,
+      );
+    }
+  });
+}
+
+export async function createTemporaryPluginFolder(tempDir: string) {
+  await Task.forItem('creating', 'temporary directory', async () => {
+    try {
+      await fs.mkdir(tempDir);
+    } catch (error) {
+      throw new Error(
+        `Failed to create temporary plugin directory: ${error.message}`,
       );
     }
   });
@@ -75,9 +86,10 @@ export const addExportStatement = async (
 
 export async function addPluginDependencyToApp(
   rootDir: string,
-  pluginPackage: string,
+  pluginName: string,
   versionStr: string,
 ) {
+  const pluginPackage = `@backstage/plugin-${pluginName}`;
   const packageFilePath = 'packages/app/package.json';
   const packageFile = resolvePath(rootDir, packageFilePath);
 
@@ -104,11 +116,8 @@ export async function addPluginDependencyToApp(
   });
 }
 
-export async function addPluginToApp(
-  rootDir: string,
-  pluginName: string,
-  pluginPackage: string,
-) {
+export async function addPluginToApp(rootDir: string, pluginName: string) {
+  const pluginPackage = `@backstage/plugin-${pluginName}`;
   const pluginNameCapitalized = pluginName
     .split('-')
     .map(name => capitalize(name))
@@ -140,21 +149,15 @@ async function buildPlugin(pluginFolder: string) {
     'yarn build',
   ];
   for (const command of commands) {
-    try {
-      await Task.forItem('executing', command, async () => {
-        process.chdir(pluginFolder);
-        await exec(command);
-      }).catch(error => {
+    await Task.forItem('executing', command, async () => {
+      process.chdir(pluginFolder);
+
+      await exec(command).catch(error => {
         process.stdout.write(error.stderr);
         process.stdout.write(error.stdout);
-        throw new Error(
-          `Warning: Could not execute command ${chalk.cyan(command)}`,
-        );
+        throw new Error(`Could not execute command ${chalk.cyan(command)}`);
       });
-    } catch (error) {
-      Task.error(error.message);
-      break;
-    }
+    });
   }
 }
 
@@ -172,7 +175,7 @@ export async function movePlugin(
   });
 }
 
-export default async (cmd: Command) => {
+export default async () => {
   const codeownersPath = await getCodeownersFilePath(paths.targetRoot);
 
   const questions: Question[] = [
@@ -218,79 +221,59 @@ export default async (cmd: Command) => {
   }
 
   const answers: Answers = await inquirer.prompt(questions);
-  const pluginId = cmd.backend ? `${answers.id}-backend` : answers.id;
 
-  const name = cmd.scope
-    ? `@${cmd.scope.replace(/^@/, '')}/plugin-${pluginId}`
-    : `plugin-${pluginId}`;
-  const npmRegistry = cmd.npmRegistry && cmd.scope ? cmd.npmRegistry : '';
-  const privatePackage = cmd.private === false ? false : true;
-  const isMonoRepo = await fs.pathExists(paths.resolveTargetRoot('lerna.json'));
   const appPackage = paths.resolveTargetRoot('packages/app');
-  const templateDir = paths.resolveOwn(
-    cmd.backend
-      ? 'templates/default-backend-plugin'
-      : 'templates/default-plugin',
-  );
-  const pluginDir = isMonoRepo
-    ? paths.resolveTargetRoot('plugins', pluginId)
-    : paths.resolveTargetRoot(pluginId);
+  const templateDir = paths.resolveOwn('templates/default-plugin');
+  const tempDir = resolvePath(os.tmpdir(), answers.id);
+  const pluginDir = paths.resolveTargetRoot('plugins', answers.id);
   const ownerIds = parseOwnerIds(answers.owner);
-  const { version: pluginVersion } = isMonoRepo
-    ? await fs.readJson(paths.resolveTargetRoot('lerna.json'))
-    : { version: '0.1.0' };
+  const { version } = await fs.readJson(paths.resolveTargetRoot('lerna.json'));
 
   Task.log();
   Task.log('Creating the plugin...');
 
-  Task.section('Checking if the plugin ID is available');
-  await checkExists(pluginDir);
-
-  Task.section('Creating a temporary plugin directory');
-  const tempDir = await fs.mkdtemp(
-    joinPath(os.tmpdir(), `backstage-plugin-${pluginId}`),
-  );
-
   try {
-    Task.section('Preparing files');
+    Task.section('Checking if the plugin ID is available');
+    await checkExists(paths.targetRoot, answers.id);
 
-    await templatingTask(
-      templateDir,
-      tempDir,
-      {
-        ...answers,
-        pluginVersion,
-        name,
-        privatePackage,
-        npmRegistry,
-      },
-      packageVersions,
-    );
+    Task.section('Creating a temporary plugin directory');
+    await createTemporaryPluginFolder(tempDir);
+
+    Task.section('Preparing files');
+    await templatingTask(templateDir, tempDir, {
+      ...answers,
+      version,
+      backstageVersion,
+    });
 
     Task.section('Moving to final location');
-    await movePlugin(tempDir, pluginDir, pluginId);
+    await movePlugin(tempDir, pluginDir, answers.id);
 
     Task.section('Building the plugin');
     await buildPlugin(pluginDir);
 
-    if ((await fs.pathExists(appPackage)) && !cmd.backend) {
+    if (await fs.pathExists(appPackage)) {
       Task.section('Adding plugin as dependency in app');
-      await addPluginDependencyToApp(paths.targetRoot, name, pluginVersion);
+      await addPluginDependencyToApp(paths.targetRoot, answers.id, version);
 
       Task.section('Import plugin in app');
-      await addPluginToApp(paths.targetRoot, pluginId, name);
+      await addPluginToApp(paths.targetRoot, answers.id);
     }
 
     if (ownerIds && ownerIds.length) {
       await addCodeownersEntry(
         codeownersPath!,
-        `/plugins/${pluginId}`,
+        `/plugins/${answers.id}`,
         ownerIds,
       );
     }
 
     Task.log();
-    Task.log(`🥇  Successfully created ${chalk.cyan(`${name}`)}`);
+    Task.log(
+      `🥇  Successfully created ${chalk.cyan(
+        `@backstage/plugin-${answers.id}`,
+      )}`,
+    );
     Task.log();
     Task.exit();
   } catch (error) {

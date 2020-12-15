@@ -60,10 +60,7 @@ const WidgetContent = ({
       metadata={{
         status: (
           <>
-            <WorkflowRunStatus
-              status={lastRun.status}
-              conclusion={lastRun.conclusion}
-            />
+            <WorkflowRunStatus status={lastRun.status} />
           </>
         ),
         message: lastRun.message,
@@ -81,9 +78,10 @@ const WidgetContent = ({
 export const LatestWorkflowRunCard = ({
   entity,
   branch = 'master',
-  // Display the card full height suitable for
-  variant,
-}: Props) => {
+}: {
+  entity: Entity;
+  branch: string;
+}) => {
   const errorApi = useApi(errorApiRef);
   const [owner, repo] = (
     entity?.metadata.annotations?.[GITHUB_ACTIONS_ANNOTATION] ?? '/'
@@ -101,7 +99,7 @@ export const LatestWorkflowRunCard = ({
   }, [error, errorApi]);
 
   return (
-    <InfoCard title={`Last ${branch} build`} variant={variant}>
+    <InfoCard title={`Last ${branch} build`}>
       <WidgetContent
         error={error}
         loading={loading}
@@ -112,18 +110,14 @@ export const LatestWorkflowRunCard = ({
   );
 };
 
-type Props = {
-  entity: Entity;
-  branch: string;
-  variant?: string;
-};
-
 export const LatestWorkflowsForBranchCard = ({
   entity,
   branch = 'master',
-  variant,
-}: Props) => (
-  <InfoCard title={`Last ${branch} build`} variant={variant}>
+}: {
+  entity: Entity;
+  branch: string;
+}) => (
+  <InfoCard title={`Last ${branch} build`}>
     <WorkflowRunsTable branch={branch} entity={entity} />
   </InfoCard>
 );

@@ -20,14 +20,19 @@ import { rootRouteRef, buildRouteRef } from '../plugin';
 import { WorkflowRunDetails } from './WorkflowRunDetails';
 import { WorkflowRunsTable } from './WorkflowRunsTable';
 import { GITHUB_ACTIONS_ANNOTATION } from './useProjectName';
-import { MissingAnnotationEmptyState } from '@backstage/core';
+import { WarningPanel } from '@backstage/core';
 
-export const isPluginApplicableToEntity = (entity: Entity) =>
-  Boolean(entity.metadata.annotations?.[GITHUB_ACTIONS_ANNOTATION]);
+const isPluginApplicableToEntity = (entity: Entity) =>
+  Boolean(entity.metadata.annotations?.[GITHUB_ACTIONS_ANNOTATION]) &&
+  entity.metadata.annotations?.[GITHUB_ACTIONS_ANNOTATION] !== '';
 
 export const Router = ({ entity }: { entity: Entity }) =>
+  // TODO(shmidt-i): move warning to a separate standardized component
   !isPluginApplicableToEntity(entity) ? (
-    <MissingAnnotationEmptyState annotation={GITHUB_ACTIONS_ANNOTATION} />
+    <WarningPanel title=" GitHubActions plugin:">
+      `entity.metadata.annotations['
+      {GITHUB_ACTIONS_ANNOTATION}']` key is missing on the entity.{' '}
+    </WarningPanel>
   ) : (
     <Routes>
       <Route

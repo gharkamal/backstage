@@ -46,6 +46,7 @@ describe('CatalogTable component', () => {
           entities={[]}
           loading={false}
           error={{ code: 'error' }}
+          onAddMockData={() => {}}
         />,
       ),
     );
@@ -62,6 +63,7 @@ describe('CatalogTable component', () => {
           titlePreamble="Owned"
           entities={entities}
           loading={false}
+          onAddMockData={() => {}}
         />,
       ),
     );

@@ -69,9 +69,8 @@ export const MultistepJsonForm = ({
         {steps.map(({ label, schema, ...formProps }) => (
           <Step key={label}>
             <StepLabel>{label}</StepLabel>
-            <StepContent key={label}>
+            <StepContent>
               <Form
-                key={label}
                 noHtml5Validate
                 formData={formData}
                 onChange={onChange}

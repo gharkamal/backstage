@@ -17,16 +17,18 @@
 import { createApiRef } from '@backstage/core';
 import { Project, Operation } from './types';
 
-export const gcpApiRef = createApiRef<GcpApi>({
+export const GCPApiRef = createApiRef<GCPApi>({
   id: 'plugin.gcpprojects.service',
   description: 'Used by the GCP Projects plugin to make requests',
 });
 
-export type GcpApi = {
-  listProjects(): Promise<Project[]>;
-  getProject(projectId: string): Promise<Project>;
-  createProject(options: {
-    projectId: string;
-    projectName: string;
-  }): Promise<Operation>;
+export type GCPApi = {
+  listProjects: ({ token }: { token: string }) => Promise<Project[]>;
+  getProject: (projectId: string, token: Promise<string>) => Promise<Project>;
+  createProject: (
+    projectName: string,
+    projectId: string,
+    owner: string,
+    token: string,
+  ) => Promise<Operation>;
 };

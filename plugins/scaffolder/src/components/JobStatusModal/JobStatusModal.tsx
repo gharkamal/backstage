@@ -13,51 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@backstage/core';
+import React, { useEffect } from 'react';
 import {
-  Button as Action,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   LinearProgress,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@material-ui/core';
-
-import React, { useCallback, useState } from 'react';
-import { Job } from '../../types';
 import { JobStage } from '../JobStage/JobStage';
+import { useJobPolling } from './useJobPolling';
+import { Job } from '../../types';
+import { TemplateEntityV1alpha1 } from '@backstage/catalog-model';
+import { Button } from '@backstage/core';
+import { entityRoute } from '@backstage/plugin-catalog';
+import { generatePath } from 'react-router-dom';
 
 type Props = {
-  job: Job | null;
-  toCatalogLink?: string;
+  onClose: () => void;
+  onComplete: (job: Job) => void;
+  jobId: string;
+  entity: TemplateEntityV1alpha1 | null;
 };
 
-export const JobStatusModal = ({ job, toCatalogLink }: Props) => {
-  const [isOpen, setOpen] = useState(true);
+export const JobStatusModal = ({
+  onClose,
+  jobId,
+  onComplete,
+  entity,
+}: Props) => {
+  const job = useJobPolling(jobId);
 
-  const renderTitle = () => {
-    switch (job?.status) {
-      case 'COMPLETED':
-        return 'Successfully created component';
-      case 'FAILED':
-        return 'Failed to create component';
-      default:
-        return 'Create component';
-    }
-  };
-
-  const onClose = useCallback(() => {
-    if (!job) {
-      return;
-    }
-    if (job.status === 'COMPLETED' || job.status === 'FAILED') {
-      setOpen(false);
-    }
-  }, [job]);
+  useEffect(() => {
+    if (job?.status === 'COMPLETED') onComplete(job);
+  }, [job, onComplete]);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth>
-      <DialogTitle id="responsive-dialog-title">{renderTitle()}</DialogTitle>
+    <Dialog open onClose={onClose} fullWidth>
+      <DialogTitle id="responsive-dialog-title">
+        Creating component...
+      </DialogTitle>
       <DialogContent>
         {!job ? (
           <LinearProgress />
@@ -74,14 +69,21 @@ export const JobStatusModal = ({ job, toCatalogLink }: Props) => {
           ))
         )}
       </DialogContent>
-      {job?.status && toCatalogLink && (
+      {entity && (
         <DialogActions>
-          <Button to={toCatalogLink}>View in catalog</Button>
-        </DialogActions>
-      )}
-      {job?.status === 'FAILED' && (
-        <DialogActions>
-          <Action onClick={() => setOpen(false)}>Close</Action>
+          <Button
+            to={generatePath(entityRoute.path, {
+              kind: entity.kind,
+              optionalNamespaceAndName: [
+                entity.metadata.namespace,
+                entity.metadata.name,
+              ]
+                .filter(Boolean)
+                .join(':'),
+            })}
+          >
+            View in catalog
+          </Button>
         </DialogActions>
       )}
     </Dialog>

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useStarredEntities } from './useStarredEntities';
+import { useStarredEntities } from './useStarredEntites';
 import {
   ApiProvider,
   ApiRegistry,
@@ -47,7 +47,7 @@ describe('useStarredEntities', () => {
     },
   };
 
-  const wrapper = ({ children }: PropsWithChildren<{}>) => {
+  const wrapper: React.FC<{}> = ({ children }) => {
     return (
       <ApiProvider apis={ApiRegistry.with(storageApiRef, mockStorage)}>
         {children}

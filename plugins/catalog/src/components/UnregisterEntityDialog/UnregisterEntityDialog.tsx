@@ -15,7 +15,7 @@
  */
 
 import { Entity, LOCATION_ANNOTATION } from '@backstage/catalog-model';
-import { alertApiRef, Progress, useApi } from '@backstage/core';
+import { Progress, useApi, alertApiRef } from '@backstage/core';
 import {
   Button,
   Dialog,
@@ -28,10 +28,10 @@ import {
   useTheme,
 } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import React from 'react';
+import React, { FC } from 'react';
 import { useAsync } from 'react-use';
 import { AsyncState } from 'react-use/lib/useAsync';
-import { catalogApiRef } from '../../plugin';
+import { catalogApiRef } from '../../api/types';
 
 type Props = {
   open: boolean;
@@ -44,22 +44,18 @@ function useColocatedEntities(entity: Entity): AsyncState<Entity[]> {
   const catalogApi = useApi(catalogApiRef);
   return useAsync(async () => {
     const myLocation = entity.metadata.annotations?.[LOCATION_ANNOTATION];
-    if (!myLocation) {
-      return [];
-    }
-    const response = await catalogApi.getEntities({
-      filter: { [LOCATION_ANNOTATION]: myLocation },
-    });
-    return response.items;
+    return myLocation
+      ? await catalogApi.getEntities({ [LOCATION_ANNOTATION]: myLocation })
+      : [];
   }, [catalogApi, entity]);
 }
 
-export const UnregisterEntityDialog = ({
+export const UnregisterEntityDialog: FC<Props> = ({
   open,
   onConfirm,
   onClose,
   entity,
-}: Props) => {
+}) => {
   const { value: entities, loading, error } = useColocatedEntities(entity);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
@@ -89,7 +85,7 @@ export const UnregisterEntityDialog = ({
             {error.toString()}
           </Alert>
         ) : null}
-        {entities?.length ? (
+        {entities ? (
           <>
             <DialogContentText>
               This action will unregister the following entities:
@@ -105,17 +101,17 @@ export const UnregisterEntityDialog = ({
               That are located at the following location:
             </DialogContentText>
             <Typography component="div">
-              <ul style={{ wordBreak: 'break-word' }}>
+              <ul>
                 <li>
                   {entities[0]?.metadata.annotations?.[LOCATION_ANNOTATION]}
                 </li>
               </ul>
             </Typography>
+            <DialogContentText>
+              To undo, just re-register the entity in Backstage.
+            </DialogContentText>
           </>
         ) : null}
-        <DialogContentText>
-          To undo, just re-register the entity in Backstage.
-        </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">

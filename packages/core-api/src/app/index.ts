@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
+export { FeatureFlags } from './FeatureFlags';
 export { useApp } from './AppContext';
 export * from './types';

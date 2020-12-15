@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { FC } from 'react';
 import { BackstageTheme } from '@backstage/theme';
 import { makeStyles } from '@material-ui/core';
 
@@ -33,7 +33,7 @@ type SubvalueCellProps = {
   subvalue: React.ReactNode;
 };
 
-export const SubvalueCell = ({ value, subvalue }: SubvalueCellProps) => {
+export const SubvalueCell: FC<SubvalueCellProps> = ({ value, subvalue }) => {
   const classes = useSubvalueCellStyles();
 
   return (

@@ -14,27 +14,8 @@
  * limitations under the License.
  */
 
-import { CatalogApi, CatalogClient } from '@backstage/catalog-client';
-import {
-  createApiFactory,
-  createApiRef,
-  createPlugin,
-  discoveryApiRef,
-} from '@backstage/core';
-
-export const catalogApiRef = createApiRef<CatalogApi>({
-  id: 'plugin.catalog.service',
-  description:
-    'Used by the Catalog plugin to make requests to accompanying backend',
-});
+import { createPlugin } from '@backstage/core';
 
 export const plugin = createPlugin({
   id: 'catalog',
-  apis: [
-    createApiFactory({
-      api: catalogApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new CatalogClient({ discoveryApi }),
-    }),
-  ],
 });

@@ -17,7 +17,7 @@ import Stream, { PassThrough } from 'stream';
 import os from 'os';
 import fs from 'fs';
 import Docker from 'dockerode';
-import { UserOptions, runDockerContainer } from './helpers';
+import { runDockerContainer } from './helpers';
 
 describe('helpers', () => {
   const mockDocker = new Docker() as jest.Mocked<Docker>;
@@ -135,17 +135,12 @@ describe('helpers', () => {
         dockerClient: mockDocker,
       });
 
-      const userOptions: UserOptions = {};
-      if (process.getuid && process.getgid) {
-        userOptions.User = `${process.getuid()}:${process.getgid()}`;
-      }
-
       expect(mockDocker.run).toHaveBeenCalledWith(
         imageName,
         args,
         expect.any(Stream),
         expect.objectContaining({
-          ...userOptions,
+          User: `${process.getuid()}:${process.getgid()}`,
           Env: ['HOME=/tmp'],
         }),
       );

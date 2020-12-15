@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { ApiRef, createApiRef } from '../system';
+import { createApiRef } from '../ApiRef';
+import {
+  UserFlags,
+  FeatureFlagsRegistry,
+  FeatureFlagsRegistryItem,
+} from '../../app/FeatureFlags';
 
 /**
  * The feature flags API is used to toggle functionality to users across plugins and Backstage.
@@ -28,59 +33,29 @@ import { ApiRef, createApiRef } from '../system';
  * to enable and disable feature flags, this API acts as another way to enable/disable.
  */
 
-export type FeatureFlag = {
-  name: string;
-  pluginId: string;
-};
-
 export enum FeatureFlagState {
-  None = 0,
-  Active = 1,
+  Off = 0,
+  On = 1,
 }
-
-/**
- * Options to use when saving feature flags.
- */
-export type FeatureFlagsSaveOptions = {
-  /**
-   * The new feature flag states to save.
-   */
-  states: Record<string, FeatureFlagState>;
-
-  /**
-   * Whether the saves states should be merged into the existing ones, or replace them.
-   *
-   * Defaults to false.
-   */
-  merge?: boolean;
-};
-
-export type UserFlags = {};
 
 export interface FeatureFlagsApi {
   /**
-   * Registers a new feature flag. Once a feature flag has been registered it
-   * can be toggled by users, and read back to enable or disable features.
+   * Store a list of registered feature flags.
    */
-  registerFlag(flag: FeatureFlag): void;
+  registeredFeatureFlags: FeatureFlagsRegistryItem[];
+
+  /**
+   * Get a list of all feature flags from the current user.
+   */
+  getFlags(): UserFlags;
 
   /**
    * Get a list of all registered flags.
    */
-  getRegisteredFlags(): FeatureFlag[];
-
-  /**
-   * Whether the feature flag with the given name is currently activated for the user.
-   */
-  isActive(name: string): boolean;
-
-  /**
-   * Save the user's choice of feature flag states.
-   */
-  save(options: FeatureFlagsSaveOptions): void;
+  getRegisteredFlags(): FeatureFlagsRegistry;
 }
 
-export const featureFlagsApiRef: ApiRef<FeatureFlagsApi> = createApiRef({
+export const featureFlagsApiRef = createApiRef<FeatureFlagsApi>({
   id: 'core.featureflags',
   description: 'Used to toggle functionality in features across Backstage',
 });

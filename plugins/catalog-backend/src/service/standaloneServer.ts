@@ -17,14 +17,16 @@
 import {
   createServiceBuilder,
   loadBackendConfig,
-  UrlReaders,
-  useHotMemoize,
 } from '@backstage/backend-common';
+import { ConfigReader } from '@backstage/config';
 import { Server } from 'http';
 import { Logger } from 'winston';
-import { DatabaseManager } from '../database';
-import { CatalogBuilder } from './CatalogBuilder';
+import { HigherOrderOperations } from '..';
+import { DatabaseEntitiesCatalog } from '../catalog/DatabaseEntitiesCatalog';
+import { DatabaseLocationsCatalog } from '../catalog/DatabaseLocationsCatalog';
+import { DatabaseManager } from '../database/DatabaseManager';
 import { createRouter } from './router';
+import { LocationReaders } from '../ingestion';
 
 export interface ServerOptions {
   port: number;
@@ -36,24 +38,19 @@ export async function startStandaloneServer(
   options: ServerOptions,
 ): Promise<Server> {
   const logger = options.logger.child({ service: 'catalog-backend' });
-  const config = await loadBackendConfig({ logger, argv: process.argv });
-  const reader = UrlReaders.default({ logger, config });
-  const db = useHotMemoize(module, () =>
-    DatabaseManager.createInMemoryDatabaseConnection(),
-  );
+  const config = ConfigReader.fromConfigs(await loadBackendConfig());
 
   logger.debug('Creating application...');
-  const builder = new CatalogBuilder({
-    logger,
-    database: { getClient: () => db },
-    config,
-    reader,
-  });
-  const {
+  const db = await DatabaseManager.createInMemoryDatabase({ logger });
+  const entitiesCatalog = new DatabaseEntitiesCatalog(db);
+  const locationsCatalog = new DatabaseLocationsCatalog(db);
+  const locationReader = new LocationReaders({ logger, config });
+  const higherOrderOperation = new HigherOrderOperations(
     entitiesCatalog,
     locationsCatalog,
-    higherOrderOperation,
-  } = await builder.build();
+    locationReader,
+    logger,
+  );
 
   logger.debug('Starting application server...');
   const router = await createRouter({

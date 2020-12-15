@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { FC } from 'react';
 import privateExports, {
   AppOptions,
+  ApiRegistry,
   defaultSystemIcons,
   BootErrorPageProps,
   AppConfigLoader,
 } from '@backstage/core-api';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
-import LightIcon from '@material-ui/icons/WbSunny';
-import DarkIcon from '@material-ui/icons/Brightness2';
+
 import { ErrorPage } from '../layout/ErrorPage';
 import { Progress } from '../components/Progress';
-import { defaultApis } from './defaultApis';
 import { lightTheme, darkTheme } from '@backstage/theme';
 import { AppConfig, JsonObject } from '@backstage/config';
 
@@ -61,23 +60,12 @@ export const defaultConfigLoader: AppConfigLoader = async (
   if (runtimeConfigJson !== '__app_injected_runtime_config__'.toUpperCase()) {
     try {
       const data = JSON.parse(runtimeConfigJson) as JsonObject;
-      if (Array.isArray(data)) {
-        configs.push(...data);
-      } else {
-        configs.push({ data, context: 'env' });
-      }
+      configs.push({ data, context: 'env' });
     } catch (error) {
       throw new Error(`Failed to load runtime configuration, ${error}`);
     }
   }
 
-  const windowAppConfig = (window as any).__APP_CONFIG__;
-  if (windowAppConfig) {
-    configs.push({
-      context: 'window',
-      data: windowAppConfig,
-    });
-  }
   return configs;
 };
 
@@ -93,7 +81,7 @@ export function createApp(options?: AppOptions) {
   const DefaultNotFoundPage = () => (
     <ErrorPage status="404" statusMessage="PAGE NOT FOUND" />
   );
-  const DefaultBootErrorPage = ({ step, error }: BootErrorPageProps) => {
+  const DefaultBootErrorPage: FC<BootErrorPageProps> = ({ step, error }) => {
     let message = '';
     if (step === 'load-config') {
       message = `The configuration failed to load, someone should have a look at this error: ${error.message}`;
@@ -106,7 +94,7 @@ export function createApp(options?: AppOptions) {
     );
   };
 
-  const apis = options?.apis ?? [];
+  const apis = options?.apis ?? ApiRegistry.from([]);
   const icons = { ...defaultSystemIcons, ...options?.icons };
   const plugins = options?.plugins ?? [];
   const components = {
@@ -122,14 +110,12 @@ export function createApp(options?: AppOptions) {
       title: 'Light Theme',
       variant: 'light',
       theme: lightTheme,
-      icon: <LightIcon />,
     },
     {
       id: 'dark',
       title: 'Dark Theme',
       variant: 'dark',
       theme: darkTheme,
-      icon: <DarkIcon />,
     },
   ];
   const configLoader = options?.configLoader ?? defaultConfigLoader;
@@ -141,7 +127,6 @@ export function createApp(options?: AppOptions) {
     components,
     themes,
     configLoader,
-    defaultApis,
   });
 
   app.verify();

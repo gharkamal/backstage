@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiProvider, ApiRegistry, errorApiRef } from '@backstage/core';
-import { CatalogApi, catalogApiRef } from '@backstage/plugin-catalog';
-import { renderInTestApp, renderWithEffects } from '@backstage/test-utils';
-import { lightTheme } from '@backstage/theme';
-import { ThemeProvider } from '@material-ui/core';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
-import { MemoryRouter, Route } from 'react-router';
-import { ScaffolderApi, scaffolderApiRef } from '../../api';
-import { rootRoute } from '../../routes';
 import { TemplatePage } from './TemplatePage';
+import { wrapInTestApp, renderWithEffects } from '@backstage/test-utils';
+import { ApiRegistry, errorApiRef, ApiProvider } from '@backstage/core';
+import { scaffolderApiRef, ScaffolderApi } from '../../api';
+import { catalogApiRef, CatalogApi } from '@backstage/plugin-catalog';
+import { mutate } from 'swr';
+import { act } from 'react-dom/test-utils';
+import { Route, MemoryRouter } from 'react-router';
+import { rootRoute } from '../../routes';
+import { ThemeProvider } from '@material-ui/core';
+import { lightTheme } from '@backstage/theme';
 
 const templateMock = {
   apiVersion: 'backstage.io/v1alpha1',
@@ -89,43 +90,48 @@ const apis = ApiRegistry.from([
 ]);
 
 describe('TemplatePage', () => {
-  beforeEach(() => jest.resetAllMocks());
-
+  afterEach(async () => {
+    // Cleaning up swr's cache
+    await act(async () => {
+      await mutate('templates/test');
+    });
+  });
   it('renders correctly', async () => {
-    catalogApiMock.getEntities.mockResolvedValueOnce({ items: [templateMock] });
-    const rendered = await renderInTestApp(
-      <ApiProvider apis={apis}>
-        <TemplatePage />
-      </ApiProvider>,
+    catalogApiMock.getEntities.mockResolvedValueOnce([templateMock]);
+    const rendered = await renderWithEffects(
+      wrapInTestApp(
+        <ApiProvider apis={apis}>
+          <TemplatePage />
+        </ApiProvider>,
+      ),
     );
 
     expect(rendered.queryByText('Create a new component')).toBeInTheDocument();
     expect(rendered.queryByText('React SSR Template')).toBeInTheDocument();
     // await act(async () => await mutate('templates/test'));
   });
-
   it('renders spinner while loading', async () => {
     let resolve: Function;
     const promise = new Promise<any>(res => {
       resolve = res;
     });
-    catalogApiMock.getEntities.mockReturnValueOnce(promise);
-    const rendered = await renderInTestApp(
-      <ApiProvider apis={apis}>
-        <TemplatePage />
-      </ApiProvider>,
+    catalogApiMock.getEntities.mockResolvedValueOnce(promise);
+    const rendered = await renderWithEffects(
+      wrapInTestApp(
+        <ApiProvider apis={apis}>
+          <TemplatePage />
+        </ApiProvider>,
+      ),
     );
 
     expect(rendered.queryByText('Create a new component')).toBeInTheDocument();
     expect(rendered.queryByTestId('loading-progress')).toBeInTheDocument();
     // Need to cleanup the promise or will timeout
-    act(() => {
-      resolve!({ items: [] });
-    });
+    resolve!();
   });
 
   it('navigates away if no template was loaded', async () => {
-    catalogApiMock.getEntities.mockResolvedValueOnce({ items: [] });
+    catalogApiMock.getEntities.mockResolvedValueOnce([]);
 
     const rendered = await renderWithEffects(
       <ApiProvider apis={apis}>

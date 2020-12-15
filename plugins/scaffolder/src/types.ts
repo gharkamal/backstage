@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export type JobStatus = 'PENDING' | 'STARTED' | 'COMPLETED' | 'FAILED';
 export type Job = {
   id: string;
   metadata: {
     entity: any;
     values: any;
     remoteUrl?: string;
-    catalogInfoUrl?: string;
   };
-  status: JobStatus;
+  status: 'PENDING' | 'STARTED' | 'COMPLETED' | 'FAILED';
   stages: Stage[];
   error?: Error;
 };
@@ -31,7 +28,7 @@ export type Job = {
 export type Stage = {
   name: string;
   log: string[];
-  status: JobStatus;
+  status: 'PENDING' | 'STARTED' | 'COMPLETED' | 'FAILED';
   startedAt: string;
   endedAt?: string;
 };

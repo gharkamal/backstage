@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { PropsWithChildren } from 'react';
+import React, { FC } from 'react';
 import {
   Step as MuiStep,
   StepContent,
@@ -53,13 +53,13 @@ export type StepProps = {
   actions?: StepActions;
 };
 
-export const SimpleStepperStep = ({
+export const SimpleStepperStep: FC<StepProps> = ({
   title,
   children,
   end,
   actions,
   ...muiProps
-}: PropsWithChildren<StepProps>) => {
+}) => {
   const classes = useStyles();
 
   // The end step is not a part of the stepper

@@ -20,6 +20,7 @@ import {
   createServiceBuilder,
   loadBackendConfig,
 } from '@backstage/backend-common';
+import { ConfigReader } from '@backstage/config';
 import { createRouter } from './router';
 
 export interface ServerOptions {
@@ -32,7 +33,7 @@ export async function startStandaloneServer(
   options: ServerOptions,
 ): Promise<Server> {
   const logger = options.logger.child({ service: 'rollbar-backend' });
-  const config = await loadBackendConfig({ logger, argv: process.argv });
+  const config = ConfigReader.fromConfigs(await loadBackendConfig());
 
   logger.debug('Creating application...');
 

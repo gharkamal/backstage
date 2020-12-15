@@ -19,7 +19,7 @@ import { TextField } from '@material-ui/core';
 import { SimpleStepper, SimpleStepperStep } from '.';
 
 export default {
-  title: 'Navigation/SimpleStepper',
+  title: 'SimpleStepper',
   component: SimpleStepper,
 };
 

@@ -29,7 +29,7 @@ export function hasScopes(
 }
 
 type ScopeHelperOptions<T> = {
-  sessionScopes: SessionScopesFunc<T> | undefined;
+  sessionScopes: SessionScopesFunc<T>;
   defaultScopes?: Set<string>;
 };
 
@@ -46,16 +46,13 @@ export class SessionScopeHelper<T> {
     if (!scopes) {
       return true;
     }
-    if (this.options.sessionScopes === undefined) {
-      return true;
-    }
     const sessionScopes = this.options.sessionScopes(session);
     return hasScopes(sessionScopes, scopes);
   }
 
   getExtendedScope(session: T | undefined, scopes?: Set<string>) {
     const newScope = new Set(this.options.defaultScopes);
-    if (session && this.options.sessionScopes !== undefined) {
+    if (session) {
       const sessionScopes = this.options.sessionScopes(session);
       for (const scope of sessionScopes) {
         newScope.add(scope);

@@ -14,62 +14,40 @@
  * limitations under the License.
  */
 
-import { UrlReader } from '@backstage/backend-common';
 import { LocationSpec } from '@backstage/catalog-model';
-import { Logger } from 'winston';
+import fetch from 'node-fetch';
 import * as result from './results';
-import { CatalogProcessor, CatalogProcessorEmit } from './types';
-import { parseEntityYaml } from './util/parse';
+import { LocationProcessor, LocationProcessorEmit } from './types';
 
-// TODO(Rugvip): Added for backwards compatibility when moving to UrlReader, this
-// can be removed in a bit
-const deprecatedTypes = [
-  'github',
-  'github/api',
-  'bitbucket/api',
-  'gitlab/api',
-  'azure/api',
-];
-
-type Options = {
-  reader: UrlReader;
-  logger: Logger;
-};
-
-export class UrlReaderProcessor implements CatalogProcessor {
-  constructor(private readonly options: Options) {}
-
+export class UrlReaderProcessor implements LocationProcessor {
   async readLocation(
     location: LocationSpec,
     optional: boolean,
-    emit: CatalogProcessorEmit,
+    emit: LocationProcessorEmit,
   ): Promise<boolean> {
-    if (deprecatedTypes.includes(location.type)) {
-      // TODO(Rugvip): Let's not enable this warning yet, as we want to move over the example YAMLs
-      //               in this repo to use the 'url' type first.
-      // this.options.logger.warn(
-      //   `Using deprecated location type '${location.type}' for '${location.target}', use 'url' instead`,
-      // );
-    } else if (location.type !== 'url') {
+    if (location.type !== 'url') {
       return false;
     }
 
     try {
-      const data = await this.options.reader.read(location.target);
+      const response = await fetch(location.target);
 
-      for (const parseResult of parseEntityYaml(data, location)) {
-        emit(parseResult);
-      }
-    } catch (error) {
-      const message = `Unable to read ${location.type}, ${error}`;
-
-      if (error.name === 'NotFoundError') {
-        if (!optional) {
-          emit(result.notFoundError(location, message));
-        }
+      if (response.ok) {
+        const data = await response.buffer();
+        emit(result.data(location, data));
       } else {
-        emit(result.generalError(location, message));
+        const message = `${location.target} could not be read, ${response.status} ${response.statusText}`;
+        if (response.status === 404) {
+          if (!optional) {
+            emit(result.notFoundError(location, message));
+          }
+        } else {
+          emit(result.generalError(location, message));
+        }
       }
+    } catch (e) {
+      const message = `Unable to read ${location.type} ${location.target}, ${e}`;
+      emit(result.generalError(location, message));
     }
 
     return true;

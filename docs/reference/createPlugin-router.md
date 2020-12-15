@@ -1,7 +1,6 @@
 ---
 id: createPlugin-router
 title: createPlugin - router
-description: Documentation on createPlugin - router
 ---
 
 The router that is passed to the `register` function makes it possible for

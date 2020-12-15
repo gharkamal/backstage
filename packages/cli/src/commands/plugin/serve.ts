@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-import fs from 'fs-extra';
 import { Command } from 'commander';
-import { serveBundle } from '../../lib/bundler';
-import { loadCliConfig } from '../../lib/config';
+import { loadConfig } from '@backstage/config-loader';
+import { ConfigReader } from '@backstage/config';
 import { paths } from '../../lib/paths';
+import { serveBundle } from '../../lib/bundler';
 
 export default async (cmd: Command) => {
-  const { name } = await fs.readJson(paths.resolveTarget('package.json'));
+  const appConfigs = await loadConfig({
+    env: process.env.NODE_ENV ?? 'development',
+    rootPaths: [paths.targetRoot, paths.targetDir],
+  });
   const waitForExit = await serveBundle({
     entry: 'dev/index',
     checksEnabled: cmd.check,
-    ...(await loadCliConfig({
-      args: cmd.config,
-      fromPackage: name,
-    })),
+    config: ConfigReader.fromConfigs(appConfigs),
+    appConfigs,
   });
 
   await waitForExit();

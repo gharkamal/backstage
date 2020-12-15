@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-import { getVoidLogger } from '@backstage/backend-common';
-import { Entity, LOCATION_ANNOTATION } from '@backstage/catalog-model';
-import { Database, DatabaseManager, Transaction } from '../database';
-import { EntityFilters } from '../service/EntityFilters';
+import type { Entity } from '@backstage/catalog-model';
+import type { Database } from '../database';
 import { DatabaseEntitiesCatalog } from './DatabaseEntitiesCatalog';
-import { EntityUpsertRequest } from './types';
 
 describe('DatabaseEntitiesCatalog', () => {
   let db: jest.Mocked<Database>;
-  let transaction: jest.Mocked<Transaction>;
 
   beforeAll(() => {
     db = {
       transaction: jest.fn(),
-      addEntities: jest.fn(),
+      addEntity: jest.fn(),
       updateEntity: jest.fn(),
       entities: jest.fn(),
-      entityByName: jest.fn(),
+      entity: jest.fn(),
       entityByUid: jest.fn(),
-      removeEntityByUid: jest.fn(),
-      setRelations: jest.fn(),
+      removeEntity: jest.fn(),
       addLocation: jest.fn(),
       removeLocation: jest.fn(),
       location: jest.fn(),
@@ -42,17 +37,14 @@ describe('DatabaseEntitiesCatalog', () => {
       locationHistory: jest.fn(),
       addLocationUpdateLogEvent: jest.fn(),
     };
-    transaction = {
-      rollback: jest.fn(),
-    };
   });
 
   beforeEach(() => {
     jest.resetAllMocks();
-    db.transaction.mockImplementation(async f => f(transaction));
+    db.transaction.mockImplementation(async f => f('tx'));
   });
 
-  describe('batchAddOrUpdateEntities', () => {
+  describe('addOrUpdateEntity', () => {
     it('adds when no given uid and no matching by name', async () => {
       const entity: Entity = {
         apiVersion: 'a',
@@ -64,110 +56,19 @@ describe('DatabaseEntitiesCatalog', () => {
       };
 
       db.entities.mockResolvedValue([]);
-      db.addEntities.mockResolvedValue([
-        { entity: { ...entity, metadata: { ...entity.metadata, uid: 'u' } } },
-      ]);
+      db.addEntity.mockResolvedValue({ entity });
 
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities([
-        { entity, relations: [] },
-      ]);
+      const catalog = new DatabaseEntitiesCatalog(db);
+      const result = await catalog.addOrUpdateEntity(entity);
 
       expect(db.entities).toHaveBeenCalledTimes(1);
-      expect(db.entities).toHaveBeenCalledWith(
-        expect.anything(),
-        EntityFilters.ofFilterString(
-          'kind=b,metadata.namespace=d,metadata.name=c',
-        ),
-      );
-      expect(db.setRelations).toHaveBeenCalledTimes(1);
-      expect(db.setRelations).toHaveBeenCalledWith(expect.anything(), 'u', []);
-      expect(db.addEntities).toHaveBeenCalledTimes(1);
-      expect(result).toEqual([{ entityId: 'u' }]);
-    });
-
-    it('dry run of add operation', async () => {
-      const entity: Entity = {
-        apiVersion: 'a',
-        kind: 'b',
-        metadata: {
-          name: 'c',
-          namespace: 'd',
-        },
-      };
-      db.entities.mockResolvedValue([]);
-      db.addEntities.mockResolvedValue([
-        { entity: { ...entity, metadata: { ...entity.metadata, uid: 'u' } } },
+      expect(db.entities).toHaveBeenCalledWith(expect.anything(), [
+        { key: 'kind', values: ['b'] },
+        { key: 'name', values: ['c'] },
+        { key: 'namespace', values: ['d'] },
       ]);
-
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities(
-        [{ entity, relations: [] }],
-        { dryRun: true },
-      );
-
-      expect(db.entities).toHaveBeenCalledTimes(1);
-      expect(db.entities).toHaveBeenCalledWith(
-        expect.anything(),
-        EntityFilters.ofFilterString(
-          'kind=b,metadata.namespace=d,metadata.name=c',
-        ),
-      );
-      expect(db.setRelations).toHaveBeenCalledTimes(1);
-      expect(db.setRelations).toHaveBeenCalledWith(expect.anything(), 'u', []);
-      expect(db.addEntities).toHaveBeenCalledTimes(1);
-      expect(transaction.rollback).toBeCalledTimes(1);
-      expect(result).toEqual([{ entityId: 'u' }]);
-    });
-
-    it('output modified entities', async () => {
-      const entity: Entity = {
-        apiVersion: 'a',
-        kind: 'b',
-        metadata: {
-          name: 'c',
-          namespace: 'd',
-          annotations: {
-            [LOCATION_ANNOTATION]: 'mock',
-          },
-        },
-      };
-      const dbEntity: Entity = {
-        apiVersion: 'a',
-        kind: 'b',
-        metadata: {
-          name: 'c',
-          namespace: 'd',
-          description: 'changes',
-          uid: 'u',
-          annotations: {
-            [LOCATION_ANNOTATION]: 'mock',
-          },
-        },
-      };
-      db.entities.mockResolvedValue([
-        {
-          entity: dbEntity,
-        },
-      ]);
-      db.addEntities.mockResolvedValue([
-        { entity: { ...entity, metadata: { ...entity.metadata, uid: 'u' } } },
-      ]);
-
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities(
-        [{ entity, relations: [] }],
-        { outputEntities: true },
-      );
-
-      expect(db.entities).toHaveBeenCalledTimes(2);
-      expect(db.setRelations).toHaveBeenCalledTimes(1);
-      expect(result).toEqual([
-        {
-          entityId: 'u',
-          entity: dbEntity,
-        },
-      ]);
+      expect(db.addEntity).toHaveBeenCalledTimes(1);
+      expect(result).toBe(entity);
     });
 
     it('updates when given uid', async () => {
@@ -179,11 +80,9 @@ describe('DatabaseEntitiesCatalog', () => {
           name: 'c',
           namespace: 'd',
         },
-        spec: {
-          x: 'b',
-        },
       };
-      const existing = {
+
+      db.entityByUid.mockResolvedValue({
         entity: {
           apiVersion: 'a',
           kind: 'b',
@@ -194,56 +93,36 @@ describe('DatabaseEntitiesCatalog', () => {
             name: 'c',
             namespace: 'd',
           },
-          spec: {
-            x: 'a',
-          },
         },
-      };
-
-      db.entities.mockResolvedValue([existing]);
-      db.entityByUid.mockResolvedValue(existing);
+      });
       db.updateEntity.mockResolvedValue({ entity });
 
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities([
-        { entity, relations: [] },
-      ]);
+      const catalog = new DatabaseEntitiesCatalog(db);
+      const result = await catalog.addOrUpdateEntity(entity);
 
-      expect(db.entities).toHaveBeenCalledTimes(1);
-      expect(db.entities).toHaveBeenCalledWith(
-        expect.anything(),
-        EntityFilters.ofFilterString(
-          'kind=b,metadata.namespace=d,metadata.name=c',
-        ),
-      );
-      expect(db.entityByName).not.toHaveBeenCalled();
+      expect(db.entities).toHaveBeenCalledTimes(0);
       expect(db.entityByUid).toHaveBeenCalledTimes(1);
-      expect(db.entityByUid).toHaveBeenCalledWith(transaction, 'u');
+      expect(db.entityByUid).toHaveBeenCalledWith(expect.anything(), 'u');
       expect(db.updateEntity).toHaveBeenCalledTimes(1);
       expect(db.updateEntity).toHaveBeenCalledWith(
-        transaction,
+        expect.anything(),
         {
           entity: {
             apiVersion: 'a',
             kind: 'b',
             metadata: {
               uid: 'u',
-              etag: expect.any(String),
-              generation: 2,
+              etag: 'e',
+              generation: 1,
               name: 'c',
               namespace: 'd',
-            },
-            spec: {
-              x: 'b',
             },
           },
         },
         'e',
         1,
       );
-      expect(db.setRelations).toHaveBeenCalledTimes(1);
-      expect(db.setRelations).toHaveBeenCalledWith(expect.anything(), 'u', []);
-      expect(result).toEqual([{ entityId: 'u' }]);
+      expect(result).toBe(entity);
     });
 
     it('update when no given uid and matching by name', async () => {
@@ -254,148 +133,51 @@ describe('DatabaseEntitiesCatalog', () => {
           name: 'c',
           namespace: 'd',
         },
-        spec: {
-          x: 'b',
-        },
       };
-      const existing = {
-        entity: {
-          apiVersion: 'a',
-          kind: 'b',
-          metadata: {
-            uid: 'u',
-            etag: 'e',
-            generation: 1,
-            name: 'c',
-            namespace: 'd',
-          },
-          spec: {
-            x: 'a',
-          },
+      const existing: Entity = {
+        apiVersion: 'a',
+        kind: 'b',
+        metadata: {
+          uid: 'u',
+          etag: 'e',
+          generation: 1,
+          name: 'c',
+          namespace: 'd',
         },
       };
 
-      db.entities.mockResolvedValue([existing]);
-      db.entityByName.mockResolvedValue(existing);
-      db.updateEntity.mockResolvedValue(existing);
+      db.entities.mockResolvedValue([{ entity: existing }]);
+      db.updateEntity.mockResolvedValue({ entity: existing });
 
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities([
-        { entity: added, relations: [] },
-      ]);
+      const catalog = new DatabaseEntitiesCatalog(db);
+      const result = await catalog.addOrUpdateEntity(added);
 
       expect(db.entities).toHaveBeenCalledTimes(1);
-      expect(db.entities).toHaveBeenCalledWith(
-        expect.anything(),
-        EntityFilters.ofFilterString(
-          'kind=b,metadata.namespace=d,metadata.name=c',
-        ),
-      );
-      expect(db.entityByName).toHaveBeenCalledTimes(1);
-      expect(db.entityByName).toHaveBeenCalledWith(transaction, {
-        kind: 'b',
-        namespace: 'd',
-        name: 'c',
-      });
+      expect(db.entities).toHaveBeenCalledWith(expect.anything(), [
+        { key: 'kind', values: ['b'] },
+        { key: 'name', values: ['c'] },
+        { key: 'namespace', values: ['d'] },
+      ]);
       expect(db.updateEntity).toHaveBeenCalledTimes(1);
       expect(db.updateEntity).toHaveBeenCalledWith(
-        transaction,
+        expect.anything(),
         {
           entity: {
             apiVersion: 'a',
             kind: 'b',
             metadata: {
               uid: 'u',
-              etag: expect.any(String),
-              generation: 2,
+              etag: 'e',
+              generation: 1,
               name: 'c',
               namespace: 'd',
-            },
-            spec: {
-              x: 'b',
             },
           },
         },
         'e',
         1,
       );
-      expect(result).toEqual([{ entityId: 'u' }]);
+      expect(result).toEqual(existing);
     });
-
-    it('should not update if entity is unchanged', async () => {
-      const entity: Entity = {
-        apiVersion: 'a',
-        kind: 'b',
-        metadata: {
-          uid: 'u',
-          name: 'c',
-          namespace: 'd',
-        },
-        spec: {
-          x: 'a',
-        },
-      };
-
-      db.entities.mockResolvedValue([{ entity }]);
-      db.entityByUid.mockResolvedValue({ entity });
-      db.updateEntity.mockResolvedValue({ entity });
-
-      const catalog = new DatabaseEntitiesCatalog(db, getVoidLogger());
-      const result = await catalog.batchAddOrUpdateEntities([
-        { entity, relations: [] },
-      ]);
-
-      expect(db.entities).toHaveBeenCalledTimes(1);
-      expect(db.entities).toHaveBeenCalledWith(
-        expect.anything(),
-        EntityFilters.ofFilterString(
-          'kind=b,metadata.namespace=d,metadata.name=c',
-        ),
-      );
-      expect(db.entityByName).not.toHaveBeenCalled();
-      expect(db.entityByUid).not.toHaveBeenCalled();
-      expect(db.updateEntity).not.toHaveBeenCalled();
-      expect(db.setRelations).toHaveBeenCalledTimes(1);
-      expect(db.setRelations).toHaveBeenCalledWith(expect.anything(), 'u', []);
-      expect(result).toEqual([{ entityId: 'u' }]);
-    });
-
-    it('both adds and updates', async () => {
-      const catalog = new DatabaseEntitiesCatalog(
-        await DatabaseManager.createTestDatabase(),
-        getVoidLogger(),
-      );
-      const entities: EntityUpsertRequest[] = [];
-      for (let i = 0; i < 300; ++i) {
-        entities.push({
-          entity: {
-            apiVersion: 'a',
-            kind: 'k',
-            metadata: { name: `n${i}` },
-          },
-          relations: [],
-        });
-      }
-
-      await catalog.batchAddOrUpdateEntities(entities);
-      const afterFirst = await catalog.entities();
-      expect(afterFirst.length).toBe(300);
-
-      entities[40].entity.metadata.op = 'changed';
-      entities.push({
-        entity: {
-          apiVersion: 'a',
-          kind: 'k',
-          metadata: { name: `n300`, op: 'added' },
-        },
-        relations: [],
-      });
-
-      await catalog.batchAddOrUpdateEntities(entities);
-      const afterSecond = await catalog.entities();
-      expect(afterSecond.length).toBe(301);
-      expect(afterSecond.find(e => e.metadata.op === 'changed')).toBeDefined();
-      expect(afterSecond.find(e => e.metadata.op === 'added')).toBeDefined();
-    }, 10000);
   });
 });

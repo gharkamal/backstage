@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Config, JsonValue } from '@backstage/config';
-import fs from 'fs-extra';
+import { TemplateEntityV1alpha1 } from '@backstage/catalog-model';
+import { JsonValue } from '@backstage/config';
 import Docker from 'dockerode';
 import express from 'express';
 import Router from 'express-promise-router';
@@ -26,20 +26,16 @@ import {
   RequiredTemplateValues,
   StageContext,
   TemplaterBuilder,
-  PublisherBuilder,
+  PublisherBase,
 } from '../scaffolder';
-import { CatalogEntityClient } from '../lib/catalog';
-import { validate, ValidatorResult } from 'jsonschema';
 
 export interface RouterOptions {
   preparers: PreparerBuilder;
   templaters: TemplaterBuilder;
-  publishers: PublisherBuilder;
+  publisher: PublisherBase;
 
   logger: Logger;
-  config: Config;
   dockerClient: Docker;
-  entityClient: CatalogEntityClient;
 }
 
 export async function createRouter(
@@ -51,35 +47,13 @@ export async function createRouter(
   const {
     preparers,
     templaters,
-    publishers,
+    publisher,
     logger: parentLogger,
-    config,
     dockerClient,
-    entityClient,
   } = options;
 
   const logger = parentLogger.child({ plugin: 'scaffolder' });
   const jobProcessor = new JobProcessor();
-
-  let workingDirectory: string;
-  if (config.has('backend.workingDirectory')) {
-    workingDirectory = config.getString('backend.workingDirectory');
-    try {
-      // Check if working directory exists and is writable
-      await fs.promises.access(
-        workingDirectory,
-        fs.constants.F_OK | fs.constants.W_OK,
-      );
-      logger.info(`using working directory: ${workingDirectory}`);
-    } catch (err) {
-      logger.error(
-        `working directory ${workingDirectory} ${
-          err.code === 'ENOENT' ? 'does not exist' : 'is not writable'
-        }`,
-      );
-      throw err;
-    }
-  }
 
   router
     .get('/v1/job/:jobId', ({ params }, res) => {
@@ -106,21 +80,9 @@ export async function createRouter(
       });
     })
     .post('/v1/jobs', async (req, res) => {
-      const templateName: string = req.body.templateName;
+      const template: TemplateEntityV1alpha1 = req.body.template;
       const values: RequiredTemplateValues & Record<string, JsonValue> =
         req.body.values;
-
-      const template = await entityClient.findTemplate(templateName);
-
-      const validationResult: ValidatorResult = validate(
-        values,
-        template.spec.schema,
-      );
-
-      if (!validationResult.valid) {
-        res.status(400).json({ errors: validationResult.errors });
-        return;
-      }
 
       const job = jobProcessor.create({
         entity: template,
@@ -132,7 +94,6 @@ export async function createRouter(
               const preparer = preparers.get(ctx.entity);
               const skeletonDir = await preparer.prepare(ctx.entity, {
                 logger: ctx.logger,
-                workingDirectory,
               });
               return { skeletonDir };
             },
@@ -154,13 +115,13 @@ export async function createRouter(
           {
             name: 'Publish template',
             handler: async (ctx: StageContext<{ resultDir: string }>) => {
-              const publisher = publishers.get(ctx.entity);
               ctx.logger.info('Will now store the template');
-              const result = await publisher.publish({
+              const { remoteUrl } = await publisher.publish({
+                entity: ctx.entity,
                 values: ctx.values,
                 directory: ctx.resultDir,
               });
-              return result;
+              return { remoteUrl };
             },
           },
         ],

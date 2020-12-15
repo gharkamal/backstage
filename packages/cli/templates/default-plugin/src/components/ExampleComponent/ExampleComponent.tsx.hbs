@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { Typography, Grid } from '@material-ui/core';
 import {
   InfoCard,
   Header,
   Page,
+  pageTheme,
   Content,
   ContentHeader,
   HeaderLabel,
@@ -11,8 +12,8 @@ import {
 } from '@backstage/core';
 import ExampleFetchComponent from '../ExampleFetchComponent';
 
-const ExampleComponent = () => (
-  <Page themeId="tool">
+const ExampleComponent: FC<{}> = () => (
+  <Page theme={pageTheme.tool}>
     <Header title="Welcome to {{ id }}!" subtitle="Optional subtitle">
       <HeaderLabel label="Owner" value="Team X" />
       <HeaderLabel label="Lifecycle" value="Alpha" />
@@ -36,5 +37,5 @@ const ExampleComponent = () => (
     </Content>
   </Page>
 );
-  
+
 export default ExampleComponent;

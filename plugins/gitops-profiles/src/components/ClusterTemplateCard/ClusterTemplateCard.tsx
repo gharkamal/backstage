@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
+import React, { FC } from 'react';
 import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -62,7 +62,7 @@ interface Props {
   activeIndex: number;
 }
 
-const ClusterTemplateCard = (props: Props) => {
+const ClusterTemplateCard: FC<Props> = props => {
   const classes = useStyles();
 
   const handleSelect = () => {

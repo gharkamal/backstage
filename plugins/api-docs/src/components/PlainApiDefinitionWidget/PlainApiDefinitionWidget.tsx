@@ -23,7 +23,5 @@ type Props = {
 };
 
 export const PlainApiDefinitionWidget = ({ definition, language }: Props) => {
-  return (
-    <CodeSnippet text={definition} language={language} showCopyCodeButton />
-  );
+  return <CodeSnippet text={definition} language={language} />;
 };

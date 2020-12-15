@@ -14,94 +14,54 @@
  * limitations under the License.
  */
 
-import { CatalogApi } from '@backstage/catalog-client';
-import {
-  Entity,
-  RELATION_MEMBER_OF,
-  RELATION_OWNED_BY,
-} from '@backstage/catalog-model';
+import { Entity } from '@backstage/catalog-model';
 import {
   ApiProvider,
   ApiRegistry,
   IdentityApi,
   identityApiRef,
-  ProfileInfo,
   storageApiRef,
 } from '@backstage/core';
 import { MockStorageApi, wrapInTestApp } from '@backstage/test-utils';
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
+import { catalogApiRef } from '../..';
+import { CatalogApi } from '../../api/types';
 import { EntityFilterGroupsProvider } from '../../filter';
-import { catalogApiRef } from '../../plugin';
 import { CatalogPage } from './CatalogPage';
 
 describe('CatalogPage', () => {
   const catalogApi: Partial<CatalogApi> = {
     getEntities: () =>
-      Promise.resolve({
-        items: [
-          {
-            apiVersion: 'backstage.io/v1alpha1',
-            kind: 'Component',
-            metadata: {
-              name: 'Entity1',
-            },
-            spec: {
-              owner: 'tools@example.com',
-              type: 'service',
-            },
-            relations: [
-              {
-                type: RELATION_OWNED_BY,
-                target: { kind: 'Group', name: 'tools', namespace: 'default' },
-              },
-            ],
+      Promise.resolve([
+        {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Component',
+          metadata: {
+            name: 'Entity1',
           },
-          {
-            apiVersion: 'backstage.io/v1alpha1',
-            kind: 'Component',
-            metadata: {
-              name: 'Entity2',
-            },
-            spec: {
-              owner: 'not-tools@example.com',
-              type: 'service',
-            },
-            relations: [
-              {
-                type: RELATION_OWNED_BY,
-                target: {
-                  kind: 'Group',
-                  name: 'not-tools',
-                  namespace: 'default',
-                },
-              },
-            ],
+          spec: {
+            owner: 'tools@example.com',
+            type: 'service',
           },
-        ] as Entity[],
-      }),
+        },
+        {
+          apiVersion: 'backstage.io/v1alpha1',
+          kind: 'Component',
+          metadata: {
+            name: 'Entity2',
+          },
+          spec: {
+            owner: 'not-tools@example.com',
+            type: 'service',
+          },
+        },
+      ] as Entity[]),
     getLocationByEntity: () =>
       Promise.resolve({ id: 'id', type: 'github', target: 'url' }),
-    getEntityByName: async entityName => {
-      return {
-        apiVersion: 'backstage.io/v1alpha1',
-        kind: 'User',
-        metadata: { name: entityName.name },
-        relations: [
-          {
-            type: RELATION_MEMBER_OF,
-            target: { namespace: 'default', kind: 'Group', name: 'tools' },
-          },
-        ],
-      };
-    },
   };
-  const testProfile: Partial<ProfileInfo> = {
-    displayName: 'Display Name',
-  };
-  const identityApi: Partial<IdentityApi> = {
+  const indentityApi: Partial<IdentityApi> = {
     getUserId: () => 'tools@example.com',
-    getProfile: () => testProfile,
   };
 
   const renderWrapped = (children: React.ReactNode) =>
@@ -110,7 +70,7 @@ describe('CatalogPage', () => {
         <ApiProvider
           apis={ApiRegistry.from([
             [catalogApiRef, catalogApi],
-            [identityApiRef, identityApi],
+            [identityApiRef, indentityApi],
             [storageApiRef, MockStorageApi.create()],
           ])}
         >

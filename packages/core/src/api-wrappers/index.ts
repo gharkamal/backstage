@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { createApp, defaultConfigLoader } from './createApp';
+export { createApp } from './createApp';

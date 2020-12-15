@@ -15,9 +15,5 @@
  */
 
 export type { Location, LocationSpec } from './types';
-export {
-  locationSchema,
-  locationSpecSchema,
-  analyzeLocationSchema,
-} from './validation';
+export { locationSchema, locationSpecSchema } from './validation';
 export { LOCATION_ANNOTATION } from './annotation';

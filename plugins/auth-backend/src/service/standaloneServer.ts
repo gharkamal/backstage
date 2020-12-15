@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
+import Knex from 'knex';
+import { Server } from 'http';
+import { Logger } from 'winston';
+import { ConfigReader } from '@backstage/config';
+import { createRouter } from './router';
 import {
   createServiceBuilder,
-  loadBackendConfig,
-  SingleHostDiscovery,
   useHotMemoize,
+  loadBackendConfig,
 } from '@backstage/backend-common';
-import { Server } from 'http';
-import Knex from 'knex';
-import { Logger } from 'winston';
-import { createRouter } from './router';
 
 export interface ServerOptions {
   logger: Logger;
@@ -33,8 +33,7 @@ export async function startStandaloneServer(
   options: ServerOptions,
 ): Promise<Server> {
   const logger = options.logger.child({ service: 'auth-backend' });
-  const config = await loadBackendConfig({ logger, argv: process.argv });
-  const discovery = SingleHostDiscovery.fromConfig(config);
+  const config = ConfigReader.fromConfigs(await loadBackendConfig());
 
   const database = useHotMemoize(module, () => {
     const knex = Knex({
@@ -52,12 +51,7 @@ export async function startStandaloneServer(
   const router = await createRouter({
     logger,
     config,
-    database: {
-      async getClient() {
-        return database;
-      },
-    },
-    discovery,
+    database,
   });
 
   const service = createServiceBuilder(module)

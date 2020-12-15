@@ -16,15 +16,17 @@
 
 import React from 'react';
 import { Table, TableColumn } from '@backstage/core';
-import { Box, Link, Typography } from '@material-ui/core';
+import { Link } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import {
   RollbarFrameworkId,
   RollbarLevel,
   RollbarTopActiveItem,
 } from '../../api/types';
-import { buildItemUrl } from '../../utils';
-import { TrendGraph } from '../TrendGraph/TrendGraph';
+import { RollbarTrendGraph } from '../RollbarTrendGraph/RollbarTrendGraph';
+
+const itemUrl = (org: string, project: string, id: number) =>
+  `https://rollbar.com/${org}/${project}/items/${id}`;
 
 const columns: TableColumn[] = [
   {
@@ -35,7 +37,7 @@ const columns: TableColumn[] = [
     width: '70px',
     render: (data: any) => (
       <Link
-        href={buildItemUrl(data.org, data.project, data.item.counter)}
+        href={itemUrl(data.org, data.project, data.item.counter)}
         target="_blank"
         rel="noreferrer"
       >
@@ -52,7 +54,7 @@ const columns: TableColumn[] = [
   {
     title: 'Trend',
     sorting: false,
-    render: (data: any) => <TrendGraph counts={data.counts} />,
+    render: (data: any) => <RollbarTrendGraph counts={data.counts} />,
   },
   {
     title: 'Occurrences',
@@ -125,12 +127,7 @@ export const RollbarTopItemsTable = ({
         pageSize: 5,
         showEmptyDataSourceMessage: !loading,
       }}
-      title={
-        <Box display="flex" alignItems="center">
-          <Box mr={1} />
-          <Typography variant="h6">Top Active Items / {project}</Typography>
-        </Box>
-      }
+      title="Top Active Items"
       data={items.map(i => ({ org: organization, project, ...i }))}
     />
   );

@@ -22,6 +22,7 @@ import inquirer, { Answers, Question } from 'inquirer';
 import { exec as execCb } from 'child_process';
 import { resolve as resolvePath } from 'path';
 import { findPaths } from '@backstage/cli-common';
+import { version } from '../package.json';
 import os from 'os';
 import { Task, templatingTask } from './lib/tasks';
 
@@ -73,6 +74,7 @@ async function buildApp(appDir: string) {
 
   await runCmd('yarn install');
   await runCmd('yarn tsc');
+  await runCmd('yarn build');
 }
 
 async function moveApp(tempDir: string, destination: string, id: string) {
@@ -86,7 +88,6 @@ async function moveApp(tempDir: string, destination: string, id: string) {
 }
 
 export default async (cmd: Command): Promise<void> => {
-  /* eslint-disable-next-line no-restricted-syntax */
   const paths = findPaths(__dirname);
 
   const questions: Question[] = [
@@ -132,7 +133,7 @@ export default async (cmd: Command): Promise<void> => {
     await createTemporaryAppFolder(tempDir);
 
     Task.section('Preparing files');
-    await templatingTask(templateDir, tempDir, answers);
+    await templatingTask(templateDir, tempDir, { ...answers, version });
 
     Task.section('Moving to final location');
     await moveApp(tempDir, appDir, answers.name);
@@ -145,10 +146,6 @@ export default async (cmd: Command): Promise<void> => {
     Task.log();
     Task.log(
       chalk.green(`🥇  Successfully created ${chalk.cyan(answers.name)}`),
-    );
-    Task.log();
-    Task.log(
-      'See https://backstage.io/docs/tutorials/quickstart-app-auth to know more about enabling auth providers',
     );
     Task.log();
     Task.exit();

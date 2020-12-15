@@ -15,7 +15,6 @@
  */
 
 import yaml from 'yaml';
-import { ENTITY_DEFAULT_NAMESPACE } from '../constants';
 import { DefaultNamespaceEntityPolicy } from './DefaultNamespaceEntityPolicy';
 
 describe('DefaultNamespaceEntityPolicy', () => {
@@ -55,10 +54,7 @@ describe('DefaultNamespaceEntityPolicy', () => {
     await expect(result).resolves.not.toBe(withoutNamespace);
     await expect(result).resolves.toEqual(
       expect.objectContaining({
-        metadata: {
-          name: 'my-component-yay',
-          namespace: ENTITY_DEFAULT_NAMESPACE,
-        },
+        metadata: { name: 'my-component-yay', namespace: 'default' },
       }),
     );
   });

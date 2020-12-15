@@ -15,7 +15,8 @@
  */
 import React, { useState } from 'react';
 import { useLocalStorage } from 'react-use';
-import { ContentHeader, InfoCard, MarkdownContent } from '@backstage/core';
+import Markdown from 'react-markdown';
+import { ContentHeader, InfoCard } from '@backstage/core';
 import { makeStyles, Button, Grid, Tabs, Tab } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 
@@ -26,7 +27,7 @@ export const LIGHTHOUSE_INTRO_LOCAL_STORAGE =
 
 const USE_CASES = `
 Google's [Lighthouse](https://developers.google.com/web/tools/lighthouse) auditing tool for websites
-is a great open-source resource for benchmarking and improving the accessibility, performance, SEO, and best practices of your site.
+is a great open-source resource forbenchmarking and improving the accessibility, performance, SEO, and best practices of your site.
 At Spotify, we keep track of Lighthouse audit scores over time to look at trends and overall areas for investment.
 
 This plugin allows you to generate on-demand Lighthouse audits for websites, and to track the trends for the
@@ -42,15 +43,16 @@ _It's likely you will need to enable CORS when running lighthouse-audit-service.
 with the environment variable \`LAS_CORS\` set to \`true\`._
 
 When you have an instance running that Backstage can hook into, make sure to export the plugin in
-your app's [\`plugins.ts\`](https://github.com/backstage/backstage/blob/master/packages/app/src/plugins.ts)
+your app's [\`plugins.ts\`](https://github.com/spotify/backstage/blob/master/packages/app/src/plugins.ts)
 to enable the plugin:
 
 \`\`\`js
-export { plugin as LighthousePlugin } from '@backstage/plugin-lighthouse';
+import { default as LighthousePlugin } from '@backstage/plugin-lighthouse';
+export LighthousePlugin;
 \`\`\`
 
 Then, you need to use the \`lighthouseApiRef\` exported from the plugin to initialize the Rest API in
-your [\`apis.ts\`](https://github.com/backstage/backstage/blob/master/packages/app/src/apis.ts).
+your [\`apis.ts\`](https://github.com/spotify/backstage/blob/master/packages/app/src/apis.ts).
 
 \`\`\`js
 import { ApiHolder, ApiRegistry } from '@backstage/core';
@@ -114,8 +116,8 @@ function GettingStartedCard() {
         </>
       }
     >
-      {value === 0 && <MarkdownContent content={USE_CASES} />}
-      {value === 1 && <MarkdownContent content={SETUP} />}
+      {value === 0 && <Markdown source={USE_CASES} />}
+      {value === 1 && <Markdown source={SETUP} />}
     </InfoCard>
   );
 }

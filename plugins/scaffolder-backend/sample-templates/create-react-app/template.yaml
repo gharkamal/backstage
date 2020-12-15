@@ -22,14 +22,13 @@ spec:
       component_id:
         title: Name
         type: string
-        pattern: ^[a-z0-9]+(-[a-z0-9]+)*$
-        description: Unique name of the component. Lowercase, URL-safe characters only.
+        description: Unique name of the component
       description:
         title: Description
         type: string
-        description: Help others understand what this website is for.
+        description: Description of the component
       use_typescript:
-        title:  Use TypeScript
+        title:  Use Typescript
         type: boolean
-        description: Include TypeScript
+        description: Include typescript
         default: true

@@ -15,19 +15,20 @@
  */
 
 //  NEEDS WORK
+
 import {
+  Link,
+  useApi,
+  googleAuthApiRef,
+  HeaderLabel,
+  Page,
+  Header,
+  pageTheme,
+  SupportButton,
   Content,
   ContentHeader,
-  Header,
-  HeaderLabel,
-  Link,
-  Page,
-  SupportButton,
-  useApi,
-  WarningPanel,
 } from '@backstage/core';
 import {
-  Button,
   LinearProgress,
   Paper,
   Table,
@@ -37,10 +38,11 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  Button,
 } from '@material-ui/core';
 import React from 'react';
 import { useAsync } from 'react-use';
-import { gcpApiRef, Project } from '../../api';
+import { GCPApiRef, Project } from '../../api';
 
 const LongText = ({ text, max }: { text: string; max: number }) => {
   if (text.length < max) {
@@ -61,17 +63,27 @@ const labels = (
 );
 
 const PageContents = () => {
-  const api = useApi(gcpApiRef);
+  const api = useApi(GCPApiRef);
+  const googleApi = useApi(googleAuthApiRef);
 
-  const { loading, error, value } = useAsync(() => api.listProjects());
+  const { loading, error, value } = useAsync(async () => {
+    const token = await googleApi.getAccessToken(
+      'https://www.googleapis.com/auth/cloud-platform.read-only',
+    );
+
+    const projects = api.listProjects({ token });
+    return projects;
+  });
 
   if (loading) {
     return <LinearProgress />;
-  } else if (error) {
+  }
+
+  if (error) {
     return (
-      <WarningPanel title="Failed to load projects">
-        {error.toString()}
-      </WarningPanel>
+      <Typography variant="h2" color="error">
+        {error.message}{' '}
+      </Typography>
     );
   }
 
@@ -132,19 +144,21 @@ const PageContents = () => {
   );
 };
 
-export const ProjectListPage = () => (
-  <Page themeId="service">
-    <Header title="GCP Projects" type="tool">
-      {labels}
-    </Header>
-    <Content>
-      <ContentHeader title="">
-        <Button variant="contained" color="primary" href="/gcp-projects/new">
-          New Project
-        </Button>
-        <SupportButton>All your software catalog entities</SupportButton>
-      </ContentHeader>
-      <PageContents />
-    </Content>
-  </Page>
-);
+export const ProjectListPage = () => {
+  return (
+    <Page theme={pageTheme.service}>
+      <Header title="GCP Projects" type="tool">
+        {labels}
+      </Header>
+      <Content>
+        <ContentHeader title="">
+          <Button variant="contained" color="primary" href="/gcp-projects/new">
+            New Project
+          </Button>
+          <SupportButton>All your software catalog entities</SupportButton>
+        </ContentHeader>
+        <PageContents />
+      </Content>
+    </Page>
+  );
+};

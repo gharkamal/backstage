@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { useState, useEffect } from 'react';
+import React, { FC, useState } from 'react';
 import { Table, TableColumn, TrendLine, useApi } from '@backstage/core';
 import { Website, lighthouseApiRef } from '../../api';
 import { useInterval } from 'react-use';
@@ -23,9 +23,8 @@ import {
   CATEGORY_LABELS,
   buildSparklinesDataForItem,
 } from '../../utils';
-import { Link, generatePath } from 'react-router-dom';
+import { Link } from '@material-ui/core';
 import AuditStatusIcon from '../AuditStatusIcon';
-import { viewAuditRouteRef } from '../../plugin';
 
 const columns: TableColumn[] = [
   {
@@ -52,13 +51,9 @@ const columns: TableColumn[] = [
   },
 ];
 
-export const AuditListTable = ({ items }: { items: Website[] }) => {
+export const AuditListTable: FC<{ items: Website[] }> = ({ items }) => {
   const [websiteState, setWebsiteState] = useState(items);
   const lighthouseApi = useApi(lighthouseApiRef);
-
-  useEffect(() => {
-    setWebsiteState(items);
-  }, [items]);
 
   const runRefresh = (websites: Website[]) => {
     websites.forEach(async website => {
@@ -99,11 +94,7 @@ export const AuditListTable = ({ items }: { items: Website[] }) => {
 
     return {
       websiteUrl: (
-        <Link
-          to={generatePath(viewAuditRouteRef.path, {
-            id: website.lastAudit.id,
-          })}
-        >
+        <Link href={`/lighthouse/audit/${website.lastAudit.id}`}>
           {website.url}
         </Link>
       ),

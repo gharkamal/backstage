@@ -17,9 +17,13 @@
 import webpack from 'webpack';
 import { createBackendConfig } from './config';
 import { resolveBundlingPaths } from './paths';
-import { BackendServeOptions } from './types';
+import { ServeOptions } from './types';
 
-export async function serveBackend(options: BackendServeOptions) {
+export async function serveBackend(
+  options: ServeOptions & {
+    inspectEnabled: boolean;
+  },
+) {
   const paths = resolveBundlingPaths(options);
   const config = await createBackendConfig(paths, {
     ...options,

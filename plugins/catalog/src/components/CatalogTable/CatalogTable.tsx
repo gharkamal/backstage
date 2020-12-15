@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Entity } from '@backstage/catalog-model';
+import { Entity, LocationSpec } from '@backstage/catalog-model';
 import { Table, TableColumn, TableProps } from '@backstage/core';
 import { Chip, Link } from '@material-ui/core';
+import Add from '@material-ui/icons/Add';
 import Edit from '@material-ui/icons/Edit';
 import GitHub from '@material-ui/icons/GitHub';
 import { Alert } from '@material-ui/lab';
-import React from 'react';
+import React, { Dispatch } from 'react';
 import { generatePath, Link as RouterLink } from 'react-router-dom';
 import { findLocationForEntityMeta } from '../../data/utils';
-import { createEditLink } from '../createEditLink';
-import { useStarredEntities } from '../../hooks/useStarredEntities';
-import { entityRoute, entityRouteParams } from '../../routes';
+import { useStarredEntities } from '../../hooks/useStarredEntites';
+import { entityRoute } from '../../routes';
 import {
   favouriteEntityIcon,
   favouriteEntityTooltip,
@@ -39,7 +39,13 @@ const columns: TableColumn<Entity>[] = [
       <Link
         component={RouterLink}
         to={generatePath(entityRoute.path, {
-          ...entityRouteParams(entity),
+          optionalNamespaceAndName: [
+            entity.metadata.namespace,
+            entity.metadata.name,
+          ]
+            .filter(Boolean)
+            .join(':'),
+          kind: entity.kind,
           selectedTabId: 'overview',
         })}
       >
@@ -69,13 +75,7 @@ const columns: TableColumn<Entity>[] = [
       <>
         {entity.metadata.tags &&
           entity.metadata.tags.map(t => (
-            <Chip
-              key={t}
-              label={t}
-              size="small"
-              variant="outlined"
-              style={{ marginBottom: '0px' }}
-            />
+            <Chip key={t} label={t} style={{ marginBottom: '0px' }} />
           ))}
       </>
     ),
@@ -87,6 +87,7 @@ type CatalogTableProps = {
   titlePreamble: string;
   loading: boolean;
   error?: any;
+  onAddMockData: Dispatch<void>;
 };
 
 export const CatalogTable = ({
@@ -94,6 +95,7 @@ export const CatalogTable = ({
   loading,
   error,
   titlePreamble,
+  onAddMockData,
 }: CatalogTableProps) => {
   const { isStarredEntity, toggleStarredEntity } = useStarredEntities();
 
@@ -121,6 +123,14 @@ export const CatalogTable = ({
       };
     },
     (rowData: Entity) => {
+      const createEditLink = (location: LocationSpec): string => {
+        switch (location.type) {
+          case 'github':
+            return location.target.replace('/blob/', '/edit/');
+          default:
+            return location.target;
+        }
+      };
       const location = findLocationForEntityMeta(rowData.metadata);
       return {
         icon: () => <Edit fontSize="small" />,
@@ -141,6 +151,13 @@ export const CatalogTable = ({
         onClick: () => toggleStarredEntity(rowData),
       };
     },
+    {
+      icon: () => <Add />,
+      tooltip: 'Add example components',
+      isFreeAction: true,
+      onClick: onAddMockData,
+      hidden: !(entities && entities.length === 0),
+    },
   ];
 
   return (
@@ -148,13 +165,10 @@ export const CatalogTable = ({
       isLoading={loading}
       columns={columns}
       options={{
-        paging: true,
-        pageSize: 20,
+        paging: false,
         actionsColumnIndex: -1,
         loadingType: 'linear',
         showEmptyDataSourceMessage: !loading,
-        padding: 'dense',
-        pageSizeOptions: [20, 50, 100],
       }}
       title={`${titlePreamble} (${(entities && entities.length) || 0})`}
       data={entities}

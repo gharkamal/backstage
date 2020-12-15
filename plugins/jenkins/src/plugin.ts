@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-import {
-  createPlugin,
-  createRouteRef,
-  createApiFactory,
-  discoveryApiRef,
-} from '@backstage/core';
-import { jenkinsApiRef, JenkinsApi } from './api';
-
-export const rootRouteRef = createRouteRef({
-  path: '',
-  title: 'Jenkins',
-});
+import { createPlugin, createRouteRef } from '@backstage/core';
+import { DetailedViewPage } from './pages/BuildWithStepsPage';
 
 export const buildRouteRef = createRouteRef({
-  path: 'run/:branch/:buildNumber',
+  path: '/jenkins/job',
   title: 'Jenkins run',
 });
 
 export const plugin = createPlugin({
   id: 'jenkins',
-  apis: [
-    createApiFactory({
-      api: jenkinsApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new JenkinsApi({ discoveryApi }),
-    }),
-  ],
+  register({ router }) {
+    router.addRoute(buildRouteRef, DetailedViewPage);
+  },
 });
+
+export { JenkinsBuildsWidget } from './components/JenkinsPluginWidget/JenkinsBuildsWidget';
+export { JenkinsLastBuildWidget } from './components/JenkinsPluginWidget/JenkinsLastBuildWidget';

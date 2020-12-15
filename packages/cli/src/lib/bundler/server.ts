@@ -23,14 +23,9 @@ import { ServeOptions } from './types';
 import { resolveBundlingPaths } from './paths';
 
 export async function serveBundle(options: ServeOptions) {
-  const url = resolveBaseUrl(options.frontendConfig);
+  const url = resolveBaseUrl(options.config);
 
-  const host =
-    options.frontendConfig.getOptionalString('app.listen.host') || url.hostname;
-  const port =
-    options.frontendConfig.getOptionalNumber('app.listen.port') ||
-    Number(url.port) ||
-    (url.protocol === 'https:' ? 443 : 80);
+  const port = Number(url.port) || (url.protocol === 'https:' ? 443 : 80);
 
   const paths = resolveBundlingPaths(options);
   const pkgPath = paths.targetPackageJson;
@@ -47,20 +42,16 @@ export async function serveBundle(options: ServeOptions) {
     contentBase: paths.targetPublic,
     contentBasePublicPath: config.output?.publicPath,
     publicPath: config.output?.publicPath,
-    historyApiFallback: {
-      // Paths with dots should still use the history fallback.
-      // See https://github.com/facebookincubator/create-react-app/issues/387.
-      disableDotRule: true,
-    },
+    historyApiFallback: true,
     clientLogLevel: 'warning',
     stats: 'errors-warnings',
     https: url.protocol === 'https:',
-    host,
+    host: url.hostname,
     port,
     proxy: pkg.proxy,
   });
 
-  await new Promise<void>((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     server.listen(port, url.hostname, (err?: Error) => {
       if (err) {
         reject(err);

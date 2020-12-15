@@ -15,26 +15,24 @@
  */
 
 import { UrlReaderProcessor } from './UrlReaderProcessor';
-import { getVoidLogger, UrlReaders } from '@backstage/backend-common';
-import { ConfigReader } from '@backstage/config';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
-import { msw } from '@backstage/test-utils';
 import {
-  CatalogProcessorEntityResult,
-  CatalogProcessorErrorResult,
-  CatalogProcessorResult,
+  LocationProcessorDataResult,
+  LocationProcessorResult,
+  LocationProcessorErrorResult,
 } from './types';
+import { setupServer } from 'msw/node';
+import { rest } from 'msw';
 
 describe('UrlReaderProcessor', () => {
   const mockApiOrigin = 'http://localhost:23000';
   const server = setupServer();
 
-  msw.setupDefaultHandlers(server);
+  beforeAll(() => server.listen());
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
+
   it('should load from url', async () => {
-    const logger = getVoidLogger();
-    const reader = UrlReaders.default({ logger, config: new ConfigReader({}) });
-    const processor = new UrlReaderProcessor({ reader, logger });
+    const processor = new UrlReaderProcessor();
     const spec = {
       type: 'url',
       target: `${mockApiOrigin}/component.yaml`,
@@ -42,23 +40,21 @@ describe('UrlReaderProcessor', () => {
 
     server.use(
       rest.get(`${mockApiOrigin}/component.yaml`, (_, res, ctx) =>
-        res(ctx.json({ mock: 'entity' })),
+        res(ctx.body('Hello')),
       ),
     );
 
-    const generated = (await new Promise<CatalogProcessorResult>(emit =>
+    const generated = (await new Promise<LocationProcessorResult>(emit =>
       processor.readLocation(spec, false, emit),
-    )) as CatalogProcessorEntityResult;
+    )) as LocationProcessorDataResult;
 
-    expect(generated.type).toBe('entity');
+    expect(generated.type).toBe('data');
     expect(generated.location).toBe(spec);
-    expect(generated.entity).toEqual({ mock: 'entity' });
+    expect(generated.data.toString('utf8')).toBe('Hello');
   });
 
   it('should fail load from url with error', async () => {
-    const logger = getVoidLogger();
-    const reader = UrlReaders.default({ logger, config: new ConfigReader({}) });
-    const processor = new UrlReaderProcessor({ reader, logger });
+    const processor = new UrlReaderProcessor();
     const spec = {
       type: 'url',
       target: `${mockApiOrigin}/component-notfound.yaml`,
@@ -70,15 +66,15 @@ describe('UrlReaderProcessor', () => {
       }),
     );
 
-    const generated = (await new Promise<CatalogProcessorResult>(emit =>
+    const generated = (await new Promise<LocationProcessorResult>(emit =>
       processor.readLocation(spec, false, emit),
-    )) as CatalogProcessorErrorResult;
+    )) as LocationProcessorErrorResult;
 
     expect(generated.type).toBe('error');
     expect(generated.location).toBe(spec);
     expect(generated.error.name).toBe('NotFoundError');
     expect(generated.error.message).toBe(
-      `Unable to read url, NotFoundError: could not read ${mockApiOrigin}/component-notfound.yaml, 404 Not Found`,
+      `${mockApiOrigin}/component-notfound.yaml could not be read, 404 Not Found`,
     );
   });
 });

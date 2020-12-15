@@ -102,7 +102,7 @@ export async function waitForExit(
     return;
   }
 
-  await new Promise<void>((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     child.once('error', error => reject(error));
     child.once('exit', code => {
       if (code) {

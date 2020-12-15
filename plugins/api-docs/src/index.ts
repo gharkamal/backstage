@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './components';
+export { ApiDefinitionCard } from './components/ApiDefinitionCard/ApiDefinitionCard';
 export { plugin } from './plugin';

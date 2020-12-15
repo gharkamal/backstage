@@ -26,7 +26,6 @@ import { render } from '@testing-library/react';
 import { RollbarApi, rollbarApiRef } from '../../api/RollbarApi';
 import { RollbarTopActiveItem } from '../../api/types';
 import { RollbarProjectPage } from './RollbarProjectPage';
-import { catalogApiRef, CatalogApi } from '@backstage/plugin-catalog';
 
 describe('RollbarProjectPage component', () => {
   const items: RollbarTopActiveItem[] = [
@@ -40,7 +39,7 @@ describe('RollbarProjectPage component', () => {
         level: 50,
         occurrences: 100,
         projectId: 12345,
-        title: 'error occurred',
+        title: 'error occured',
         uniqueOccurrences: 10,
       },
       counts: [10, 10, 10, 10, 10, 50],
@@ -61,17 +60,6 @@ describe('RollbarProjectPage component', () => {
           apis={ApiRegistry.from([
             [rollbarApiRef, rollbarApi],
             [configApiRef, config],
-            [
-              catalogApiRef,
-              ({
-                async getEntityByName() {
-                  return {
-                    metadata: { name: 'foo' },
-                    spec: { owner: 'bar', lifecycle: 'experimental' },
-                  } as any;
-                },
-              } as Partial<CatalogApi>) as CatalogApi,
-            ],
           ])}
         >
           {children}
@@ -81,6 +69,6 @@ describe('RollbarProjectPage component', () => {
 
   it('should render rollbar project page', async () => {
     const rendered = renderWrapped(<RollbarProjectPage />);
-    expect(rendered.getByText(/Rollbar/)).toBeInTheDocument();
+    expect(rendered.getByText(/Top Active Items/)).toBeInTheDocument();
   });
 });

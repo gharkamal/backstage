@@ -16,9 +16,11 @@
 import { useParams } from 'react-router';
 
 /**
- * Grabs entity kind, namespace, and name from the location
+ * Grabs entity kind and name + optional namespace from location
  */
 export const useEntityCompoundName = () => {
-  const { kind, namespace, name } = useParams();
-  return { kind, namespace, name };
+  const params = useParams();
+  const { kind, optionalNamespaceAndName = '' } = params;
+  const [name, namespace] = optionalNamespaceAndName.split(':').reverse();
+  return { kind, name, namespace };
 };

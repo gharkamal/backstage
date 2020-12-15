@@ -27,7 +27,7 @@
 export function runPeriodically(fn: () => any, delayMs: number): () => void {
   let cancel: () => void;
   let cancelled = false;
-  const cancellationPromise = new Promise<void>(resolve => {
+  const cancellationPromise = new Promise(resolve => {
     cancel = () => {
       resolve();
       cancelled = true;

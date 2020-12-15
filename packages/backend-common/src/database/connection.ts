@@ -17,7 +17,7 @@
 import knex from 'knex';
 import { Config } from '@backstage/config';
 import { mergeDatabaseConfig } from './config';
-import { createPgDatabaseClient, ensurePgDatabaseExists } from './postgres';
+import { createPgDatabaseClient } from './postgres';
 import { createSqliteDatabaseClient } from './sqlite3';
 
 type DatabaseClient = 'pg' | 'sqlite3' | string;
@@ -48,19 +48,3 @@ export function createDatabaseClient(
  * @deprecated Use createDatabaseClient instead
  */
 export const createDatabase = createDatabaseClient;
-
-/**
- * Ensures that the given databases all exist, creating them if they do not.
- */
-export async function ensureDatabaseExists(
-  dbConfig: Config,
-  ...databases: Array<string>
-) {
-  const client: DatabaseClient = dbConfig.getString('client');
-
-  if (client === 'pg') {
-    return ensurePgDatabaseExists(dbConfig, ...databases);
-  }
-
-  return undefined;
-}

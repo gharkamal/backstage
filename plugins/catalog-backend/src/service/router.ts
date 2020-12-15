@@ -14,39 +14,28 @@
  * limitations under the License.
  */
 
-import { errorHandler } from '@backstage/backend-common';
-import {
-  locationSpecSchema,
-  analyzeLocationSchema,
-} from '@backstage/catalog-model';
+import { errorHandler, InputError } from '@backstage/backend-common';
+import { locationSpecSchema } from '@backstage/catalog-model';
 import type { Entity } from '@backstage/catalog-model';
 import express from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
-import yn from 'yn';
 import { EntitiesCatalog, LocationsCatalog } from '../catalog';
-import { LocationAnalyzer, HigherOrderOperation } from '../ingestion/types';
-import { translateQueryToFieldMapper } from './filterQuery';
-import { EntityFilters } from './EntityFilters';
+import { EntityFilters } from '../database';
+import { HigherOrderOperation } from '../ingestion/types';
 import { requireRequestBody, validateRequestBody } from './util';
 
 export interface RouterOptions {
   entitiesCatalog?: EntitiesCatalog;
   locationsCatalog?: LocationsCatalog;
   higherOrderOperation?: HigherOrderOperation;
-  locationAnalyzer?: LocationAnalyzer;
   logger: Logger;
 }
 
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const {
-    entitiesCatalog,
-    locationsCatalog,
-    higherOrderOperation,
-    locationAnalyzer,
-  } = options;
+  const { entitiesCatalog, locationsCatalog, higherOrderOperation } = options;
 
   const router = Router();
   router.use(express.json());
@@ -54,30 +43,22 @@ export async function createRouter(
   if (entitiesCatalog) {
     router
       .get('/entities', async (req, res) => {
-        const filter = EntityFilters.ofQuery(req.query);
-        const fieldMapper = translateQueryToFieldMapper(req.query);
-        const entities = await entitiesCatalog.entities(filter);
-        res.status(200).send(entities.map(fieldMapper));
+        const filters = translateQueryToEntityFilters(req);
+        const entities = await entitiesCatalog.entities(filters);
+        res.status(200).send(entities);
       })
       .post('/entities', async (req, res) => {
         const body = await requireRequestBody(req);
-        const [result] = await entitiesCatalog.batchAddOrUpdateEntities([
-          { entity: body as Entity, relations: [] },
-        ]);
-        const [entity] = await entitiesCatalog.entities(
-          EntityFilters.ofMatchers({ 'metadata.uid': result.entityId }),
-        );
-        res.status(200).send(entity);
+        const result = await entitiesCatalog.addOrUpdateEntity(body as Entity);
+        res.status(200).send(result);
       })
       .get('/entities/by-uid/:uid', async (req, res) => {
         const { uid } = req.params;
-        const entities = await entitiesCatalog.entities(
-          EntityFilters.ofMatchers({ 'metadata.uid': uid }),
-        );
-        if (!entities.length) {
+        const entity = await entitiesCatalog.entityByUid(uid);
+        if (!entity) {
           res.status(404).send(`No entity with uid ${uid}`);
         }
-        res.status(200).send(entities[0]);
+        res.status(200).send(entity);
       })
       .delete('/entities/by-uid/:uid', async (req, res) => {
         const { uid } = req.params;
@@ -86,29 +67,26 @@ export async function createRouter(
       })
       .get('/entities/by-name/:kind/:namespace/:name', async (req, res) => {
         const { kind, namespace, name } = req.params;
-        const entities = await entitiesCatalog.entities(
-          EntityFilters.ofMatchers({
-            kind: kind,
-            'metadata.namespace': namespace,
-            'metadata.name': name,
-          }),
+        const entity = await entitiesCatalog.entityByName(
+          kind,
+          namespace,
+          name,
         );
-        if (!entities.length) {
+        if (!entity) {
           res
             .status(404)
             .send(
               `No entity with kind ${kind} namespace ${namespace} name ${name}`,
             );
         }
-        res.status(200).send(entities[0]);
+        res.status(200).send(entity);
       });
   }
 
   if (higherOrderOperation) {
     router.post('/locations', async (req, res) => {
       const input = await validateRequestBody(req, locationSpecSchema);
-      const dryRun = yn(req.query.dryRun, { default: false });
-      const output = await higherOrderOperation.addLocation(input, { dryRun });
+      const output = await higherOrderOperation.addLocation(input);
       res.status(201).send(output);
     });
   }
@@ -136,14 +114,29 @@ export async function createRouter(
       });
   }
 
-  if (locationAnalyzer) {
-    router.post('/analyze-location', async (req, res) => {
-      const input = await validateRequestBody(req, analyzeLocationSchema);
-      const output = await locationAnalyzer.analyzeLocation(input);
-      res.status(200).send(output);
+  router.use(errorHandler());
+  return router;
+}
+
+function translateQueryToEntityFilters(
+  request: express.Request,
+): EntityFilters {
+  const filters: EntityFilters = [];
+
+  for (const [key, valueOrValues] of Object.entries(request.query)) {
+    const values = Array.isArray(valueOrValues)
+      ? valueOrValues
+      : [valueOrValues];
+
+    if (values.some(v => typeof v !== 'string')) {
+      throw new InputError('Complex query parameters are not supported');
+    }
+
+    filters.push({
+      key,
+      values: values.map(v => v || null) as string[],
     });
   }
 
-  router.use(errorHandler());
-  return router;
+  return filters;
 }

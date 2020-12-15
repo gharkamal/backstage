@@ -71,7 +71,13 @@ export const MetadataTable = ({
   dense?: boolean;
   children: React.ReactNode;
 }) => (
-  <Table size={dense ? 'small' : 'medium'}>
+  <Table>
+    {!dense && (
+      <colgroup>
+        <col style={{ width: 'auto' }} />
+        <col style={{ width: '100%' }} />
+      </colgroup>
+    )}
     <TableBody>{children}</TableBody>
   </Table>
 );

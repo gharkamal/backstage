@@ -30,11 +30,9 @@ export class RollbarClient implements RollbarApi {
   }
 
   async getAllProjects(): Promise<RollbarProject[]> {
-    return await this.get(`/projects`);
-  }
+    const path = `/projects`;
 
-  async getProject(projectName: string): Promise<RollbarProject> {
-    return await this.get(`/projects/${projectName}`);
+    return await this.get(path);
   }
 
   async getTopActiveItems(
@@ -42,13 +40,15 @@ export class RollbarClient implements RollbarApi {
     hours = 24,
     environment = 'production',
   ): Promise<RollbarTopActiveItem[]> {
-    return await this.get(
-      `/projects/${project}/top_active_items?environment=${environment}&hours=${hours}`,
-    );
+    const path = `/projects/${project}/top_active_items?environment=${environment}&hours=${hours}`;
+
+    return await this.get(path);
   }
 
   async getProjectItems(project: string): Promise<RollbarItemsResponse> {
-    return await this.get(`/projects/${project}/items`);
+    const path = `/projects/${project}/items`;
+
+    return await this.get(path);
   }
 
   private async get(path: string): Promise<any> {

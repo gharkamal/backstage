@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 import { errorApiRef, useApi } from '@backstage/core';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useAsyncRetry } from 'react-use';
-import { circleCIApiRef } from '../api';
+import { circleCIApiRef, GitType } from '../api/index';
 import { useAsyncPolling } from './useAsyncPolling';
-import { useProjectSlugFromEntity, mapVcsType } from './useBuilds';
+import { useSettings } from './useSettings';
 
 const INTERVAL_AMOUNT = 1500;
 export function useBuildWithSteps(buildId: number) {
-  const { vcs, repo, owner } = useProjectSlugFromEntity();
+  const [{ token, repo, owner }] = useSettings();
   const api = useApi(circleCIApiRef);
   const errorApi = useApi(errorApiRef);
 
-  const vcsOption = useMemo(
-    () => ({
-      owner: owner,
-      repo: repo,
-      type: mapVcsType(vcs),
-    }),
-    [owner, repo, vcs],
-  );
-
   const getBuildWithSteps = useCallback(async () => {
-    if (owner === '' || repo === '' || vcs === '') {
+    if (owner === '' || repo === '' || token === '') {
       return Promise.reject('No credentials provided');
     }
 
     try {
       const options = {
-        vcs: vcsOption,
+        token: token,
+        vcs: {
+          owner: owner,
+          repo: repo,
+          type: GitType.GITHUB,
+        },
       };
       const build = await api.getBuild(buildId, options);
       return Promise.resolve(build);
@@ -50,12 +46,17 @@ export function useBuildWithSteps(buildId: number) {
       errorApi.post(e);
       return Promise.reject(e);
     }
-  }, [vcsOption, buildId, api, errorApi]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token, owner, repo, buildId, api, errorApi]);
 
   const restartBuild = async () => {
     try {
       await api.retry(buildId, {
-        vcs: vcsOption,
+        token: token,
+        vcs: {
+          owner: owner,
+          repo: repo,
+          type: GitType.GITHUB,
+        },
       });
     } catch (e) {
       errorApi.post(e);

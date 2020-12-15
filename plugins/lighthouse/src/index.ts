@@ -15,6 +15,4 @@
  */
 
 export { plugin } from './plugin';
-export { Router, isPluginApplicableToEntity, EmbeddedRouter } from './Router';
 export * from './api';
-export * from './components/Cards';

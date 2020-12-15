@@ -21,6 +21,7 @@ const ctx: ReaderContext = {
   env: {
     SECRET: 'my-secret',
   },
+  skip: () => false,
   readSecret: jest.fn(),
   async readFile(path) {
     const content = ({
@@ -55,32 +56,20 @@ describe('readSecret', () => {
   });
 
   it('should read data secrets', async () => {
-    // Deprecated object form
     await expect(
       readSecret({ data: 'my-data.json', path: 'a.b.c' }, ctx),
     ).resolves.toBe('42');
+
     await expect(
       readSecret({ data: 'my-data.yaml', path: 'some.yaml.key' }, ctx),
     ).resolves.toBe('7');
+
     await expect(
       readSecret({ data: 'my-data.yml', path: 'different.key' }, ctx),
     ).resolves.toBe('hello');
+
     await expect(
       readSecret({ data: 'no-data.yml', path: 'different.key' }, ctx),
-    ).rejects.toThrow('File not found!');
-
-    // New format with path in fragment
-    await expect(readSecret({ data: 'my-data.json#a.b.c' }, ctx)).resolves.toBe(
-      '42',
-    );
-    await expect(
-      readSecret({ data: 'my-data.yaml#some.yaml.key' }, ctx),
-    ).resolves.toBe('7');
-    await expect(
-      readSecret({ data: 'my-data.yml#different.key' }, ctx),
-    ).resolves.toBe('hello');
-    await expect(
-      readSecret({ data: 'no-data.yml#different.key' }, ctx),
     ).rejects.toThrow('File not found!');
   });
 
@@ -95,7 +84,7 @@ describe('readSecret', () => {
       "Secret must contain one of 'file', 'env', 'data'",
     );
     await expect(readSecret({ data: 'no-data.yml' }, ctx)).rejects.toThrow(
-      "Invalid format for data secret value, must be of the form <filepath>#<datapath>, got 'no-data.yml'",
+      'path is a required field',
     );
     await expect(
       readSecret({ data: 'no-parser.js', path: '.' }, ctx),

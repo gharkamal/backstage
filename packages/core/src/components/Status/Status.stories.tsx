@@ -27,7 +27,7 @@ import { Table } from '../Table';
 import { InfoCard } from '../../layout/InfoCard';
 
 export default {
-  title: 'Feedback/Status',
+  title: 'Status',
   component: StatusOK,
 };
 

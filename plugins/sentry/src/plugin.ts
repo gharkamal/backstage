@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-import {
-  configApiRef,
-  createApiFactory,
-  createPlugin,
-  createRouteRef,
-  discoveryApiRef,
-} from '@backstage/core';
-import { ProductionSentryApi, sentryApiRef } from './api';
-
-export const rootRouteRef = createRouteRef({
-  path: '/sentry',
-  title: 'Sentry',
-});
+import { createPlugin } from '@backstage/core';
+import SentryPluginPage from './components/SentryPluginPage';
 
 export const plugin = createPlugin({
   id: 'sentry',
-  apis: [
-    createApiFactory({
-      api: sentryApiRef,
-      deps: { configApi: configApiRef, discoveryApi: discoveryApiRef },
-      factory: ({ configApi, discoveryApi }) =>
-        new ProductionSentryApi(
-          discoveryApi,
-          configApi.getString('sentry.organization'),
-        ),
-    }),
-  ],
+  register({ router }) {
+    router.registerRoute('/sentry', SentryPluginPage);
+  },
 });

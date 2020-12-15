@@ -24,12 +24,10 @@ export function useWorkflowRuns({
   owner,
   repo,
   branch,
-  initialPageSize = 5,
 }: {
   owner: string;
   repo: string;
   branch?: string;
-  initialPageSize?: number;
 }) {
   const api = useApi(githubActionsApiRef);
   const auth = useApi(githubAuthApiRef);
@@ -38,7 +36,7 @@ export function useWorkflowRuns({
 
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [pageSize, setPageSize] = useState(5);
 
   const { loading, value: runs, retry, error } = useAsyncRetry<
     WorkflowRun[]
@@ -87,7 +85,6 @@ export function useWorkflowRuns({
                 },
               },
               status: run.status,
-              conclusion: run.conclusion,
               url: run.url,
               githubUrl: run.html_url,
             }));

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import { Location, LocationSpec } from '@backstage/catalog-model';
+import { InputError } from '@backstage/backend-common';
+import {
+  Entity,
+  entityHasChanges,
+  Location,
+  LocationSpec,
+} from '@backstage/catalog-model';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from 'winston';
 import { EntitiesCatalog, LocationsCatalog } from '../catalog';
-import { durationText } from '../util';
 import {
   AddLocationResult,
   HigherOrderOperation,
@@ -33,12 +38,22 @@ import {
  * database more directly.
  */
 export class HigherOrderOperations implements HigherOrderOperation {
+  private readonly entitiesCatalog: EntitiesCatalog;
+  private readonly locationsCatalog: LocationsCatalog;
+  private readonly locationReader: LocationReader;
+  private readonly logger: Logger;
+
   constructor(
-    private readonly entitiesCatalog: EntitiesCatalog,
-    private readonly locationsCatalog: LocationsCatalog,
-    private readonly locationReader: LocationReader,
-    private readonly logger: Logger,
-  ) {}
+    entitiesCatalog: EntitiesCatalog,
+    locationsCatalog: LocationsCatalog,
+    locationReader: LocationReader,
+    logger: Logger,
+  ) {
+    this.entitiesCatalog = entitiesCatalog;
+    this.locationsCatalog = locationsCatalog;
+    this.locationReader = locationReader;
+    this.logger = logger;
+  }
 
   /**
    * Adds a single location to the catalog.
@@ -52,12 +67,7 @@ export class HigherOrderOperations implements HigherOrderOperation {
    *
    * @param spec The location to add
    */
-  async addLocation(
-    spec: LocationSpec,
-    options?: { dryRun?: boolean },
-  ): Promise<AddLocationResult> {
-    const dryRun = options?.dryRun || false;
-
+  async addLocation(spec: LocationSpec): Promise<AddLocationResult> {
     // Attempt to find a previous location matching the spec
     const previousLocations = await this.locationsCatalog.locations();
     const previousLocation = previousLocations.find(
@@ -73,9 +83,11 @@ export class HigherOrderOperations implements HigherOrderOperation {
 
     // Read the location fully, bailing on any errors
     const readerOutput = await this.locationReader.read(spec);
-    if (!(spec.presence === 'optional') && readerOutput.errors.length) {
+    if (readerOutput.errors.length) {
       const item = readerOutput.errors[0];
-      throw item.error;
+      throw new InputError(
+        `Failed to read location ${item.location.type} ${item.location.target}, ${item.error}`,
+      );
     }
 
     // TODO(freben): At this point, we could detect orphaned entities, by way
@@ -83,27 +95,19 @@ export class HigherOrderOperations implements HigherOrderOperation {
     // in the entities list. But we aren't sure what to do about those yet.
 
     // Write
-    if (!previousLocation && !dryRun) {
-      // TODO: We do not include location operations in the dryRun. We might perform
-      // this operation as a separate dry run.
+    if (!previousLocation) {
       await this.locationsCatalog.addLocation(location);
     }
-    if (readerOutput.entities.length === 0) {
-      return { location, entities: [] };
+    const outputEntities: Entity[] = [];
+    for (const entity of readerOutput.entities) {
+      const out = await this.entitiesCatalog.addOrUpdateEntity(
+        entity.entity,
+        location.id,
+      );
+      outputEntities.push(out);
     }
 
-    const writtenEntities = await this.entitiesCatalog.batchAddOrUpdateEntities(
-      readerOutput.entities,
-      {
-        locationId: dryRun ? undefined : location.id,
-        dryRun,
-        outputEntities: true,
-      },
-    );
-
-    const entities = writtenEntities.map(e => e.entity!);
-
-    return { location, entities };
+    return { location, entities: outputEntities };
   }
 
   /**
@@ -115,88 +119,88 @@ export class HigherOrderOperations implements HigherOrderOperation {
    * without changes.
    */
   async refreshAllLocations(): Promise<void> {
-    const startTimestamp = process.hrtime();
-    const logger = this.logger.child({
-      component: 'catalog-all-locations-refresh',
-    });
-
-    logger.info('Locations Refresh: Beginning locations refresh');
+    const startTimestamp = new Date().valueOf();
+    this.logger.info('Beginning locations refresh');
 
     const locations = await this.locationsCatalog.locations();
-    logger.info(`Locations Refresh: Visiting ${locations.length} locations`);
+    this.logger.info(`Visiting ${locations.length} locations`);
 
     for (const { data: location } of locations) {
-      logger.info(
-        `Locations Refresh: Refreshing location ${location.type}:${location.target}`,
+      this.logger.debug(
+        `Refreshing location id="${location.id}" type="${location.type}" target="${location.target}"`,
       );
       try {
         await this.refreshSingleLocation(location);
         await this.locationsCatalog.logUpdateSuccess(location.id, undefined);
       } catch (e) {
-        logger.warn(
-          `Locations Refresh: Failed to refresh location ${location.type}:${location.target}, ${e.stack}`,
+        this.logger.debug(
+          `Failed to refresh location id="${location.id}" type="${location.type}" target="${location.target}", ${e}`,
         );
         await this.locationsCatalog.logUpdateFailure(location.id, e);
       }
     }
 
-    logger.info(
-      `Locations Refresh: Completed locations refresh in ${durationText(
-        startTimestamp,
-      )}`,
-    );
+    const endTimestamp = new Date().valueOf();
+    const duration = ((endTimestamp - startTimestamp) / 1000).toFixed(1);
+    this.logger.debug(`Completed locations refresh in ${duration} seconds`);
   }
 
   // Performs a full refresh of a single location
   private async refreshSingleLocation(location: Location) {
-    let startTimestamp = process.hrtime();
-
     const readerOutput = await this.locationReader.read({
       type: location.type,
       target: location.target,
     });
 
     for (const item of readerOutput.errors) {
-      this.logger.warn(
-        `Failed item in location ${item.location.type}:${item.location.target}, ${item.error.stack}`,
+      this.logger.debug(
+        `Failed item in location type="${item.location.type}" target="${item.location.target}", ${item.error}`,
       );
     }
 
-    this.logger.info(
-      `Read ${readerOutput.entities.length} entities from location ${
-        location.type
-      }:${location.target} in ${durationText(startTimestamp)}`,
-    );
+    for (const item of readerOutput.entities) {
+      const { entity } = item;
 
-    startTimestamp = process.hrtime();
-
-    try {
-      await this.entitiesCatalog.batchAddOrUpdateEntities(
-        readerOutput.entities,
-        { locationId: location.id },
+      this.logger.debug(
+        `Read entity kind="${entity.kind}" name="${
+          entity.metadata.name
+        }" namespace="${entity.metadata.namespace || ''}"`,
       );
-    } catch (e) {
-      for (const entity of readerOutput.entities) {
+
+      try {
+        const previous = await this.entitiesCatalog.entityByName(
+          entity.kind,
+          entity.metadata.namespace,
+          entity.metadata.name,
+        );
+
+        if (!previous) {
+          this.logger.debug(`No such entity found, adding`);
+          await this.entitiesCatalog.addOrUpdateEntity(entity, location.id);
+        } else if (entityHasChanges(previous, entity)) {
+          this.logger.debug(`Different from existing entity, updating`);
+          await this.entitiesCatalog.addOrUpdateEntity(entity, location.id);
+        } else {
+          this.logger.debug(`Equal to existing entity, skipping update`);
+        }
+
+        await this.locationsCatalog.logUpdateSuccess(
+          location.id,
+          entity.metadata.name,
+        );
+      } catch (error) {
+        this.logger.debug(
+          `Failed refresh of entity kind="${entity.kind}" name="${
+            entity.metadata.name
+          }" namespace="${entity.metadata.namespace || ''}", ${error}`,
+        );
+
         await this.locationsCatalog.logUpdateFailure(
           location.id,
-          e,
-          entity.entity.metadata.name,
+          error,
+          entity.metadata.name,
         );
       }
-      throw e;
     }
-
-    this.logger.info(`Posting update success markers`);
-
-    await this.locationsCatalog.logUpdateSuccess(
-      location.id,
-      readerOutput.entities.map(e => e.entity.metadata.name),
-    );
-
-    this.logger.info(
-      `Wrote ${readerOutput.entities.length} entities from location ${
-        location.type
-      }:${location.target} in ${durationText(startTimestamp)}`,
-    );
   }
 }

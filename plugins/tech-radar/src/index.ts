@@ -16,8 +16,6 @@
 
 export { plugin } from './plugin';
 
-export { RadarPage as Router } from './components/RadarPage';
-
 /**
  * The TypeScript API for configuring Tech Radar.
  */

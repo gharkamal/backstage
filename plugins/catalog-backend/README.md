@@ -21,11 +21,14 @@ To evaluate the catalog and have a greater amount of functionality available, in
 # in one terminal window, run this from from the very root of the Backstage project
 cd packages/backend
 yarn start
+
+# open another terminal window, and run the following from the very root of the Backstage project
+yarn lerna run mock-data
 ```
 
-This will launch the full example backend, populated some example entities.
+This will launch the full example backend and populate its catalog with some mock entities.
 
 ## Links
 
-- [Frontend part of the plugin](https://github.com/backstage/backstage/tree/master/plugins/catalog)
+- [Frontend part of the plugin](https://github.com/spotify/backstage/tree/master/plugins/catalog)
 - [The Backstage homepage](https://backstage.io)

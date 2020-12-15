@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { ApiRef, createApiRef } from '../system';
+import { createApiRef } from '../ApiRef';
 import { BackstageTheme } from '@backstage/theme';
 import { Observable } from '../../types';
-import { SvgIconProps } from '@material-ui/core';
 
 /**
  * Describes a theme provided by the app.
@@ -42,11 +41,6 @@ export type AppTheme = {
    * The specialized MaterialUI theme instance.
    */
   theme: BackstageTheme;
-
-  /**
-   * An Icon for the theme mode setting.
-   */
-  icon?: React.ReactElement<SvgIconProps>;
 };
 
 /**
@@ -77,7 +71,7 @@ export type AppThemeApi = {
   setActiveThemeId(themeId?: string): void;
 };
 
-export const appThemeApiRef: ApiRef<AppThemeApi> = createApiRef({
+export const appThemeApiRef = createApiRef<AppThemeApi>({
   id: 'core.apptheme',
   description: 'API Used to configure the app theme, and enumerate options',
 });

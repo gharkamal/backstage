@@ -16,7 +16,6 @@
 
 import { ComponentType } from 'react';
 import { RouteRef } from '../routing';
-import { AnyApiFactory } from '../apis/system';
 
 export type RouteOptions = {
   // Whether the route path must match exactly, defaults to true.
@@ -54,9 +53,11 @@ export type LegacyRedirectRouteOutput = {
   options?: RouteOptions;
 };
 
+export type FeatureFlagName = string;
+
 export type FeatureFlagOutput = {
   type: 'feature-flag';
-  name: string;
+  name: FeatureFlagName;
 };
 
 export type PluginOutput =
@@ -66,46 +67,7 @@ export type PluginOutput =
   | RedirectRouteOutput
   | FeatureFlagOutput;
 
-export type Extension<T> = {
-  expose(plugin: BackstagePlugin): T;
-};
-
 export type BackstagePlugin = {
   getId(): string;
   output(): PluginOutput[];
-  getApis(): Iterable<AnyApiFactory>;
-  provide<T>(extension: Extension<T>): T;
-};
-
-export type PluginConfig = {
-  id: string;
-  apis?: Iterable<AnyApiFactory>;
-  register?(hooks: PluginHooks): void;
-};
-
-export type PluginHooks = {
-  router: RouterHooks;
-  featureFlags: FeatureFlagsHooks;
-};
-
-export type RouterHooks = {
-  addRoute(
-    target: RouteRef,
-    Component: ComponentType<any>,
-    options?: RouteOptions,
-  ): void;
-
-  /**
-   * @deprecated See the `addRoute` method
-   * @see https://github.com/backstage/backstage/issues/418
-   */
-  registerRoute(
-    path: RoutePath,
-    Component: ComponentType<any>,
-    options?: RouteOptions,
-  ): void;
-};
-
-export type FeatureFlagsHooks = {
-  register(name: string): void;
 };

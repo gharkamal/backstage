@@ -37,8 +37,8 @@ const Component: ProviderComponent = ({ onResult }) => {
         profile: profile!,
         getIdToken: () =>
           auth0AuthApi.getBackstageIdentity().then(i => i!.idToken),
-        signOut: async () => {
-          await auth0AuthApi.signOut();
+        logout: async () => {
+          await auth0AuthApi.logout();
         },
       });
     } catch (error) {
@@ -79,8 +79,8 @@ const loader: ProviderLoader = async apis => {
     userId: identity.id,
     profile: profile!,
     getIdToken: () => auth0AuthApi.getBackstageIdentity().then(i => i!.idToken),
-    signOut: async () => {
-      await auth0AuthApi.signOut();
+    logout: async () => {
+      await auth0AuthApi.logout();
     },
   };
 };

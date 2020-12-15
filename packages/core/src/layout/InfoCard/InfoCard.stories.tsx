@@ -13,49 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Grid, Typography } from '@material-ui/core';
-import React, { PropsWithChildren } from 'react';
-import { MemoryRouter } from 'react-router';
+import React, { FC } from 'react';
 import { InfoCard } from '.';
+import { Grid } from '@material-ui/core';
 
+const cardContentStyle = { height: 200, width: 500 };
 const linkInfo = { title: 'Go to XYZ Location', link: '#' };
 
 export default {
-  title: 'Layout/Information Card',
+  title: 'Information Card',
   component: InfoCard,
 };
 
-const text = (
-  <Typography paragraph>
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-    tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-    quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-    consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-    non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-  </Typography>
-);
-
-const Wrapper = ({ children }: PropsWithChildren<{}>) => (
-  <MemoryRouter>
-    <Grid container spacing={4}>
-      <Grid item xs={4}>
-        {children}
-      </Grid>
-    </Grid>
-  </MemoryRouter>
+const Wrapper: FC<{}> = ({ children }) => (
+  <Grid container spacing={4}>
+    <Grid item>{children}</Grid>
+  </Grid>
 );
 
 export const Default = () => (
   <Wrapper>
-    <InfoCard title="Information Card">{text}</InfoCard>
+    <InfoCard title="Information Card">
+      <div style={cardContentStyle} />
+    </InfoCard>
   </Wrapper>
 );
 
 export const Subhead = () => (
   <Wrapper>
-    <InfoCard title="Information Card" subheader="Subheader">
-      {text}
+    <InfoCard title="Information Card" subheader="Subhead">
+      <div style={cardContentStyle} />
     </InfoCard>
   </Wrapper>
 );
@@ -63,7 +50,7 @@ export const Subhead = () => (
 export const LinkInFooter = () => (
   <Wrapper>
     <InfoCard title="Information Card" deepLink={linkInfo}>
-      {text}
+      <div style={cardContentStyle} />
     </InfoCard>
   </Wrapper>
 );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { FC } from 'react';
 import { makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -27,7 +27,7 @@ const useStyles = makeStyles({
   },
 });
 
-const LogoIcon = () => {
+const LogoIcon: FC<{}> = () => {
   const classes = useStyles();
 
   return (

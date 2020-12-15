@@ -14,28 +14,15 @@
  * limitations under the License.
  */
 
-import {
-  createPlugin,
-  createApiFactory,
-  discoveryApiRef,
-} from '@backstage/core';
-import { rootRouteRef, entityRouteRef } from './routes';
-import { RollbarHome } from './components/RollbarHome/RollbarHome';
+import { createPlugin } from '@backstage/core';
+import { RollbarPage } from './components/RollbarPage/RollbarPage';
 import { RollbarProjectPage } from './components/RollbarProjectPage/RollbarProjectPage';
-import { rollbarApiRef } from './api/RollbarApi';
-import { RollbarClient } from './api/RollbarClient';
+import { rootRoute, rootProjectRoute } from './routes';
 
 export const plugin = createPlugin({
   id: 'rollbar',
-  apis: [
-    createApiFactory({
-      api: rollbarApiRef,
-      deps: { discoveryApi: discoveryApiRef },
-      factory: ({ discoveryApi }) => new RollbarClient({ discoveryApi }),
-    }),
-  ],
   register({ router }) {
-    router.addRoute(rootRouteRef, RollbarHome);
-    router.addRoute(entityRouteRef, RollbarProjectPage);
+    router.addRoute(rootRoute, RollbarPage);
+    router.addRoute(rootProjectRoute, RollbarProjectPage);
   },
 });

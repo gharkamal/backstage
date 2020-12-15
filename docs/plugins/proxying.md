@@ -1,7 +1,6 @@
 ---
 id: proxying
 title: Proxying
-description: Documentation on Proxying
 ---
 
 ## Overview
@@ -23,7 +22,7 @@ const proxyEnv = useHotMemoize(module, () => createEnv('proxy'));
 const service = createServiceBuilder(module)
   .loadConfig(configReader)
   /** ... other routers ... */
-  .addRouter('/proxy', await proxy(proxyEnv));
+  .addRouter('/proxy', await proxy(proxyEnv, '/proxy'));
 ```
 
 ## Configuration
@@ -41,14 +40,15 @@ proxy:
     target: http://larger.example.com:8080/svc.v1
     headers:
       Authorization:
-        $env: EXAMPLE_AUTH_HEADER
+        $secret:
+          env: EXAMPLE_AUTH_HEADER
 ```
 
 Each key under the proxy configuration entry is a route to match, below the
 prefix that the proxy plugin is mounted on. It must start with a slash. For
 example, if the backend mounts the proxy plugin as `/proxy`, the above
 configuration will lead to the proxy acting on backend requests to
-`/api/proxy/simple-example/...` and `/api/proxy/larger-example/v1/...`.
+`/proxy/simple-example/...` and `/proxy/larger-example/v1/...`.
 
 The value inside each route is either a simple URL string, or an object on the
 format accepted by
@@ -70,25 +70,6 @@ except with the following caveats for convenience:
   commonly useful value.
 - If `pathRewrite` is not specified, it is set to a single rewrite that removes
   the entire prefix and route. In the above example, a rewrite of
-  `'^/api/proxy/larger-example/v1/': '/'` is added. That means that a request to
-  `/api/proxy/larger-example/v1/some/path` will be translated to a request to
+  `'^/proxy/larger-example/v1/': '/'` is added. That means that a request to
+  `/proxy/larger-example/v1/some/path` will be translated to a request to
   `http://larger.example.com:8080/svc.v1/some/path`.
-
-There are also additional settings:
-
-- `allowedMethods`: Limit the forwarded HTTP methods. For example
-  `allowedMethods: ['GET']` enforces read-only access.
-- `allowedHeaders`: A list of headers that should be forwarded to and received
-  from the target.
-
-By default, the proxy will only forward safe HTTP request headers to the target.
-Those are based on the headers that are considered safe for CORS and includes
-headers like `content-type` or `last-modified`, as well as all headers that are
-set by the proxy. If the proxy should forward other headers like
-`authorization`, this must be enabled by the `allowedHeaders` config, for
-example `allowedHeaders: ['Authorization']`. This should help to not
-accidentally forward confidential headers (`cookie`, `X-Auth-Request-User`) to
-third-parties.
-
-The same logic applies to headers that are sent from the target back to the
-frontend.

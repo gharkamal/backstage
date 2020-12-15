@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import React, {
-  Fragment,
-  useState,
-  MouseEventHandler,
-  PropsWithChildren,
-} from 'react';
+import React, { FC, Fragment, useState, MouseEventHandler } from 'react';
 import {
   Button,
   Link,
@@ -54,12 +49,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const SupportButton = ({
+export const SupportButton: FC<Props> = ({
   slackChannel = '#backstage',
   email = [],
   children,
-}: // plugin,
-PropsWithChildren<Props>) => {
+  // plugin,
+}) => {
   // TODO: get plugin manifest with hook
 
   const [popoverOpen, setPopoverOpen] = useState(false);

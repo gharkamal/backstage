@@ -26,7 +26,7 @@ export class AppIdentity implements IdentityApi {
   private userId?: string;
   private profile?: ProfileInfo;
   private idTokenFunc?: () => Promise<string>;
-  private signOutFunc?: () => Promise<void>;
+  private logoutFunc?: () => Promise<void>;
 
   getUserId(): string {
     if (!this.hasIdentity) {
@@ -55,13 +55,13 @@ export class AppIdentity implements IdentityApi {
     return this.idTokenFunc?.();
   }
 
-  async signOut(): Promise<void> {
+  async logout(): Promise<void> {
     if (!this.hasIdentity) {
       throw new Error(
-        'Tried to access IdentityApi signOutFunc before app was loaded',
+        'Tried to access IdentityApi logoutFunc before app was loaded',
       );
     }
-    await this.signOutFunc?.();
+    await this.logoutFunc?.();
     location.reload();
   }
 
@@ -80,6 +80,6 @@ export class AppIdentity implements IdentityApi {
     this.userId = result.userId;
     this.profile = result.profile;
     this.idTokenFunc = result.getIdToken;
-    this.signOutFunc = result.signOut;
+    this.logoutFunc = result.logout;
   }
 }

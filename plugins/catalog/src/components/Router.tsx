@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ENTITY_DEFAULT_NAMESPACE } from '@backstage/catalog-model';
-import { Content } from '@backstage/core';
-import { Link, Typography } from '@material-ui/core';
 import React, { ComponentType } from 'react';
-import { Navigate, Route, Routes, useParams } from 'react-router';
-import { useEntity } from '../hooks/useEntity';
-import { entityRoute, rootRoute } from '../routes';
 import { CatalogPage } from './CatalogPage';
-import { EntityNotFound } from './EntityNotFound';
 import { EntityPageLayout } from './EntityPageLayout';
+import { Route, Routes } from 'react-router';
+import { entityRoute, rootRoute } from '../routes';
+import { Content } from '@backstage/core';
+import { Typography, Link } from '@material-ui/core';
 import { EntityProvider } from './EntityProvider';
+import { useEntity } from '../hooks/useEntity';
 
 const DefaultEntityPage = () => (
   <EntityPageLayout>
@@ -32,7 +30,7 @@ const DefaultEntityPage = () => (
       title="Overview"
       element={
         <Content>
-          <Typography variant="h2">This is the default entity page.</Typography>
+          <Typography variant="h2">This is default entity page. </Typography>
           <Typography variant="body1">
             To override this component with your custom implementation, read
             docs on{' '}
@@ -47,26 +45,13 @@ const DefaultEntityPage = () => (
 );
 
 const EntityPageSwitch = ({ EntityPage }: { EntityPage: ComponentType }) => {
-  const { entity, loading, error } = useEntity();
+  const { entity } = useEntity();
   // Loading and error states
-  if (loading) return <EntityPageLayout />;
-  if (error || !entity) return <EntityNotFound />;
+  if (!entity) return <EntityPageLayout />;
 
   // Otherwise EntityPage provided from the App
   // Note that EntityPage will include EntityPageLayout already
   return <EntityPage />;
-};
-
-const OldEntityRouteRedirect = () => {
-  const { optionalNamespaceAndName, '*': rest } = useParams() as any;
-  const [name, namespace] = optionalNamespaceAndName.split(':').reverse();
-  const namespaceLower = namespace?.toLowerCase() ?? ENTITY_DEFAULT_NAMESPACE;
-  const restWithSlash = rest ? `/${rest}` : '';
-  return (
-    <Navigate
-      to={`../../${namespaceLower}/component/${name}${restWithSlash}`}
-    />
-  );
 };
 
 export const Router = ({
@@ -75,18 +60,14 @@ export const Router = ({
   EntityPage?: ComponentType;
 }) => (
   <Routes>
-    <Route path={`${rootRoute.path}`} element={<CatalogPage />} />
+    <Route path={`/${rootRoute.path}`} element={<CatalogPage />} />
     <Route
-      path={`${entityRoute.path}`}
+      path={`/${entityRoute.path}`}
       element={
         <EntityProvider>
           <EntityPageSwitch EntityPage={EntityPage} />
         </EntityProvider>
       }
-    />
-    <Route
-      path="Component/:optionalNamespaceAndName/*"
-      element={<OldEntityRouteRedirect />}
     />
   </Routes>
 );

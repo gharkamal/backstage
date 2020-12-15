@@ -1,24 +1,20 @@
-FROM node:12-buster AS build
-
-RUN mkdir /app
-COPY . /app
-WORKDIR /app
-
-RUN yarn install
-RUN yarn tsc
-RUN yarn workspace example-app build
-
-# Contruct backstage-frontend image
 FROM nginx:mainline
+
+# The purpose of this image is to serve the frontend app content separately.
+# By default the Backstage backend uses the app-backend plugin to serve the
+# app from the backend itself, but it may be desirable to move the frontend
+# content serving to a separate deployment, in which case this image can be used.
+
+# This dockerfile requires the app to be built on the host first, as it
+# simply copies in the build output into the image.
+
+# The safest way to build this image is to use `yarn docker-build:app`
 
 RUN apt-get update && apt-get -y install jq && rm -rf /var/lib/apt/lists/*
 
-# Copy from build stage
-COPY --from=build /app/packages/app/dist /usr/share/nginx/html
-
+COPY packages/app/dist /usr/share/nginx/html
 COPY docker/default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY docker/run.sh /usr/local/bin/run.sh
-
 CMD run.sh
 
 ENV PORT 80

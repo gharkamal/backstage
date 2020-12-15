@@ -5,7 +5,6 @@ export default async function createPlugin({
   logger,
   database,
   config,
-  discovery,
 }: PluginEnvironment) {
-  return await createRouter({ logger, config, database, discovery });
+  return await createRouter({ logger, config, database });
 }

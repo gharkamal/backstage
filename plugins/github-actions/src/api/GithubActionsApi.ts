@@ -19,7 +19,6 @@ import {
   ActionsListWorkflowRunsForRepoResponseData,
   ActionsGetWorkflowResponseData,
   ActionsGetWorkflowRunResponseData,
-  EndpointInterface,
 } from '@octokit/types';
 
 export const githubActionsApiRef = createApiRef<GithubActionsApi>({
@@ -76,15 +75,4 @@ export type GithubActionsApi = {
     repo: string;
     runId: number;
   }) => Promise<any>;
-  downloadJobLogsForWorkflowRun: ({
-    token,
-    owner,
-    repo,
-    runId,
-  }: {
-    token: string;
-    owner: string;
-    repo: string;
-    runId: number;
-  }) => Promise<EndpointInterface>;
 };

@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import os from 'os';
 import fs from 'fs-extra';
 import path from 'path';
+import os from 'os';
 import { TemplateEntityV1alpha1 } from '@backstage/catalog-model';
-import { parseLocationAnnotation } from '../helpers';
+import { parseLocationAnnotation } from './helpers';
 import { InputError } from '@backstage/backend-common';
-import { PreparerBase, PreparerOptions } from './types';
+import { PreparerBase } from './types';
 
 export class FilePreparer implements PreparerBase {
-  async prepare(
-    template: TemplateEntityV1alpha1,
-    opts: PreparerOptions,
-  ): Promise<string> {
+  async prepare(template: TemplateEntityV1alpha1): Promise<string> {
     const { protocol, location } = parseLocationAnnotation(template);
-    const workingDirectory = opts?.workingDirectory ?? os.tmpdir();
 
     if (protocol !== 'file') {
       throw new InputError(
@@ -37,7 +33,7 @@ export class FilePreparer implements PreparerBase {
     const templateId = template.metadata.name;
 
     const tempDir = await fs.promises.mkdtemp(
-      path.join(workingDirectory, templateId),
+      path.join(os.tmpdir(), templateId),
     );
 
     const parentDirectory = path.resolve(

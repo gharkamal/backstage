@@ -1,7 +1,7 @@
 # AppThemeApi
 
 The AppThemeApi type is defined at
-[packages/core-api/src/apis/definitions/AppThemeApi.ts:56](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/core-api/src/apis/definitions/AppThemeApi.ts#L56).
+[packages/core-api/src/apis/definitions/AppThemeApi.ts:50](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/core-api/src/apis/definitions/AppThemeApi.ts#L50).
 
 The following Utility API implements this type:
 [appThemeApiRef](./README.md#apptheme)
@@ -72,16 +72,11 @@ export type AppTheme = {
    * The specialized MaterialUI theme instance.
    */
   theme: <a href="#backstagetheme">BackstageTheme</a>;
-
-  /**
-   * An Icon for the theme mode setting.
-   */
-  icon?: React.ReactElement&lt;SvgIconProps&gt;;
 }
 </pre>
 
 Defined at
-[packages/core-api/src/apis/definitions/AppThemeApi.ts:25](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/core-api/src/apis/definitions/AppThemeApi.ts#L25).
+[packages/core-api/src/apis/definitions/AppThemeApi.ts:24](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/core-api/src/apis/definitions/AppThemeApi.ts#L24).
 
 Referenced by: [getInstalledThemes](#getinstalledthemes).
 
@@ -92,7 +87,7 @@ export type BackstagePalette = Palette &amp; <a href="#paletteadditions">Palette
 </pre>
 
 Defined at
-[packages/theme/src/types.ts:74](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/theme/src/types.ts#L74).
+[packages/theme/src/types.ts:67](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/theme/src/types.ts#L67).
 
 Referenced by: [BackstageTheme](#backstagetheme).
 
@@ -101,13 +96,11 @@ Referenced by: [BackstageTheme](#backstagetheme).
 <pre>
 export interface BackstageTheme extends Theme {
   palette: <a href="#backstagepalette">BackstagePalette</a>;
-  page: <a href="#pagetheme">PageTheme</a>;
-  getPageTheme: ({ themeId }: <a href="#pagethemeselector">PageThemeSelector</a>) =&gt; <a href="#pagetheme">PageTheme</a>;
 }
 </pre>
 
 Defined at
-[packages/theme/src/types.ts:81](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/theme/src/types.ts#L81).
+[packages/theme/src/types.ts:70](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/theme/src/types.ts#L70).
 
 Referenced by: [AppTheme](#apptheme).
 
@@ -136,13 +129,13 @@ export type Observable&lt;T&gt; = {
 </pre>
 
 Defined at
-[packages/core-api/src/types.ts:53](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/core-api/src/types.ts#L53).
+[packages/core-api/src/types.ts:53](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/core-api/src/types.ts#L53).
 
 Referenced by: [activeThemeId\$](#activethemeid).
 
 ### Observer
 
-This file contains non-react related core types used throughout Backstage.
+This file contains non-react related core types used throught Backstage.
 
 Observer interface for consuming an Observer, see TC39.
 
@@ -155,37 +148,9 @@ export type Observer&lt;T&gt; = {
 </pre>
 
 Defined at
-[packages/core-api/src/types.ts:24](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/core-api/src/types.ts#L24).
+[packages/core-api/src/types.ts:24](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/core-api/src/types.ts#L24).
 
 Referenced by: [Observable](#observable).
-
-### PageTheme
-
-<pre>
-export type PageTheme = {
-  colors: string[];
-  shape: string;
-  backgroundImage: string;
-}
-</pre>
-
-Defined at
-[packages/theme/src/types.ts:103](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/theme/src/types.ts#L103).
-
-Referenced by: [BackstageTheme](#backstagetheme).
-
-### PageThemeSelector
-
-<pre>
-export type PageThemeSelector = {
-  themeId: string;
-}
-</pre>
-
-Defined at
-[packages/theme/src/types.ts:77](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/theme/src/types.ts#L77).
-
-Referenced by: [BackstageTheme](#backstagetheme).
 
 ### PaletteAdditions
 
@@ -216,8 +181,6 @@ type PaletteAdditions = {
   navigation: {
     background: string;
     indicator: string;
-    color: string;
-    selectedColor: string;
   };
   tabbar: {
     indicator: string;
@@ -236,14 +199,12 @@ type PaletteAdditions = {
   banner: {
     info: string;
     error: string;
-    text: string;
-    link: string;
   };
 }
 </pre>
 
 Defined at
-[packages/theme/src/types.ts:23](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/theme/src/types.ts#L23).
+[packages/theme/src/types.ts:23](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/theme/src/types.ts#L23).
 
 Referenced by: [BackstagePalette](#backstagepalette).
 
@@ -266,6 +227,6 @@ export type Subscription = {
 </pre>
 
 Defined at
-[packages/core-api/src/types.ts:33](https://github.com/backstage/backstage/blob/ca535f2f66c3a4980c80f4b1a049dfd07569010e/packages/core-api/src/types.ts#L33).
+[packages/core-api/src/types.ts:33](https://github.com/spotify/backstage/blob/f8780ff32509d0326bc513791ea60846d7614b34/packages/core-api/src/types.ts#L33).
 
 Referenced by: [Observable](#observable).

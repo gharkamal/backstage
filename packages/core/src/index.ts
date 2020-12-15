@@ -19,4 +19,3 @@ export * from '@backstage/core-api';
 export * from './api-wrappers';
 export * from './components';
 export * from './layout';
-export * from './hooks';

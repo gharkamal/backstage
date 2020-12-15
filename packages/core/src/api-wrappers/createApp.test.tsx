@@ -15,23 +15,21 @@
  */
 
 import { defaultConfigLoader } from './createApp';
-
-(process as any).env = { NODE_ENV: 'test' };
-const anyEnv = process.env as any;
-const anyWindow = window as any;
+import { AppConfig } from '@backstage/config';
 
 describe('defaultConfigLoader', () => {
   afterEach(() => {
-    delete anyEnv.APP_CONFIG;
-    delete anyWindow.__APP_CONFIG__;
+    delete process.env.APP_CONFIG;
   });
 
   it('loads static config', async () => {
-    anyEnv.APP_CONFIG = [
-      { data: { my: 'config' }, context: 'a' },
-      { data: { my: 'override-config' }, context: 'b' },
-    ];
-
+    Object.defineProperty(process.env, 'APP_CONFIG', {
+      configurable: true,
+      value: [
+        { data: { my: 'config' }, context: 'a' },
+        { data: { my: 'override-config' }, context: 'b' },
+      ] as AppConfig[],
+    });
     const configs = await defaultConfigLoader();
     expect(configs).toEqual([
       { data: { my: 'config' }, context: 'a' },
@@ -40,11 +38,13 @@ describe('defaultConfigLoader', () => {
   });
 
   it('loads runtime config', async () => {
-    anyEnv.APP_CONFIG = [
-      { data: { my: 'override-config' }, context: 'a' },
-      { data: { my: 'config' }, context: 'b' },
-    ];
-
+    Object.defineProperty(process.env, 'APP_CONFIG', {
+      configurable: true,
+      value: [
+        { data: { my: 'override-config' }, context: 'a' },
+        { data: { my: 'config' }, context: 'b' },
+      ] as AppConfig[],
+    });
     const configs = await (defaultConfigLoader as any)(
       '{"my":"runtime-config"}',
     );
@@ -62,33 +62,23 @@ describe('defaultConfigLoader', () => {
   });
 
   it('fails to load invalid static config', async () => {
-    anyEnv.APP_CONFIG = { my: 'invalid-config' };
+    Object.defineProperty(process.env, 'APP_CONFIG', {
+      configurable: true,
+      value: { my: 'invalid-config' } as any,
+    });
     await expect(defaultConfigLoader()).rejects.toThrow(
       'Static configuration has invalid format',
     );
   });
 
   it('fails to load bad runtime config', async () => {
-    anyEnv.APP_CONFIG = [{ data: { my: 'config' }, context: 'a' }];
+    Object.defineProperty(process.env, 'APP_CONFIG', {
+      configurable: true,
+      value: [{ data: { my: 'config' }, context: 'a' }] as AppConfig[],
+    });
 
     await expect((defaultConfigLoader as any)('}')).rejects.toThrow(
       'Failed to load runtime configuration, SyntaxError: Unexpected token } in JSON at position 0',
     );
-  });
-
-  it('loads config from window.__APP_CONFIG__', async () => {
-    anyEnv.APP_CONFIG = [
-      { data: { my: 'config' }, context: 'a' },
-      { data: { my: 'override-config' }, context: 'b' },
-    ];
-    const windowConfig = { app: { configKey: 'config-value' } };
-    anyWindow.__APP_CONFIG__ = windowConfig;
-
-    const configs = await defaultConfigLoader();
-
-    expect(configs).toEqual([
-      ...anyEnv.APP_CONFIG,
-      { context: 'window', data: windowConfig },
-    ]);
   });
 });

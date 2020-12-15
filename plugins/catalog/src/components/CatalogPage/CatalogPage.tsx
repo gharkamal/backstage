@@ -19,6 +19,7 @@ import {
   Content,
   ContentHeader,
   errorApiRef,
+  identityApiRef,
   SupportButton,
   useApi,
 } from '@backstage/core';
@@ -28,17 +29,15 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import StarIcon from '@material-ui/icons/Star';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { catalogApiRef } from '../../api/types';
 import { EntityFilterGroupsProvider, useFilteredEntities } from '../../filter';
-import { useStarredEntities } from '../../hooks/useStarredEntities';
-import { catalogApiRef } from '../../plugin';
+import { useStarredEntities } from '../../hooks/useStarredEntites';
 import { ButtonGroup, CatalogFilter } from '../CatalogFilter/CatalogFilter';
 import { CatalogTable } from '../CatalogTable/CatalogTable';
 import { ResultsFilter } from '../ResultsFilter/ResultsFilter';
 import CatalogLayout from './CatalogLayout';
 import { CatalogTabs, LabeledComponentType } from './CatalogTabs';
 import { WelcomeBanner } from './WelcomeBanner';
-import { useOwnUser } from '../useOwnUser';
-import { isOwnerOf } from '../isOwnerOf';
 
 const useStyles = makeStyles(theme => ({
   contentWrapper: {
@@ -46,9 +45,6 @@ const useStyles = makeStyles(theme => ({
     gridTemplateAreas: "'filters' 'table'",
     gridTemplateColumns: '250px 1fr',
     gridColumnGap: theme.spacing(2),
-  },
-  buttonSpacing: {
-    marginLeft: theme.spacing(2),
   },
 }));
 
@@ -60,12 +56,12 @@ const CatalogPageContents = () => {
     reload,
     matchingEntities,
     availableTags,
-    isCatalogEmpty,
   } = useFilteredEntities();
   const configApi = useApi(configApiRef);
   const catalogApi = useApi(catalogApiRef);
   const errorApi = useApi(errorApiRef);
   const { isStarredEntity } = useStarredEntities();
+  const userId = useApi(identityApiRef).getUserId();
   const [selectedTab, setSelectedTab] = useState<string>();
   const [selectedSidebarItem, setSelectedSidebarItem] = useState<string>();
   const orgName = configApi.getOptionalString('organization.name') ?? 'Company';
@@ -76,7 +72,7 @@ const CatalogPageContents = () => {
       const root = configApi.getConfig('catalog.exampleEntityLocations');
       for (const type of root.keys()) {
         for (const target of root.getStringArray(type)) {
-          promises.push(catalogApi.addLocation({ target }));
+          promises.push(catalogApi.addLocation(type, target));
         }
       }
       await Promise.all(promises);
@@ -112,8 +108,6 @@ const CatalogPageContents = () => {
     [],
   );
 
-  const { value: user } = useOwnUser();
-
   const filterGroups = useMemo<ButtonGroup[]>(
     () => [
       {
@@ -123,7 +117,7 @@ const CatalogPageContents = () => {
             id: 'owned',
             label: 'Owned',
             icon: SettingsIcon,
-            filterFn: entity => user !== undefined && isOwnerOf(user, entity),
+            filterFn: entity => entity.spec?.owner === userId,
           },
           {
             id: 'starred',
@@ -144,11 +138,8 @@ const CatalogPageContents = () => {
         ],
       },
     ],
-    [isStarredEntity, orgName, user],
+    [isStarredEntity, userId, orgName],
   );
-
-  const showAddExampleEntities =
-    configApi.has('catalog.exampleEntityLocations') && isCatalogEmpty;
 
   return (
     <CatalogLayout>
@@ -167,16 +158,6 @@ const CatalogPageContents = () => {
           >
             Create Component
           </Button>
-          {showAddExampleEntities && (
-            <Button
-              className={styles.buttonSpacing}
-              variant="outlined"
-              color="primary"
-              onClick={addMockData}
-            >
-              Add example components
-            </Button>
-          )}
           <SupportButton>All your software catalog entities</SupportButton>
         </ContentHeader>
         <div className={styles.contentWrapper}>
@@ -193,6 +174,7 @@ const CatalogPageContents = () => {
             entities={matchingEntities}
             loading={loading}
             error={error}
+            onAddMockData={addMockData}
           />
         </div>
       </Content>

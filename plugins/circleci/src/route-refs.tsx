@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import React, { FC } from 'react';
 import { createRouteRef } from '@backstage/core';
 import { SvgIcon, SvgIconProps } from '@material-ui/core';
 
-const CircleCIIcon = (props: SvgIconProps) => (
+const CircleCIIcon: FC<SvgIconProps> = props => (
   <SvgIcon
     {...props}
     enableBackground="new 0 0 200 200"
@@ -33,11 +33,11 @@ const CircleCIIcon = (props: SvgIconProps) => (
 
 export const circleCIRouteRef = createRouteRef({
   icon: CircleCIIcon,
-  path: '',
+  path: '/circleci',
   title: 'CircleCI | All builds',
 });
 
 export const circleCIBuildRouteRef = createRouteRef({
-  path: ':buildId',
+  path: '/circleci/build/:buildId',
   title: 'CircleCI | Build info',
 });

@@ -15,7 +15,7 @@
  */
 
 /**
- * This file contains non-react related core types used throughout Backstage.
+ * This file contains non-react related core types used throught Backstage.
  */
 
 /**

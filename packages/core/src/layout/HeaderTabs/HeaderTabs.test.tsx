@@ -15,7 +15,8 @@
  */
 
 import React from 'react';
-import { renderInTestApp } from '@backstage/test-utils';
+import { render } from '@testing-library/react';
+import { wrapInTestApp } from '@backstage/test-utils';
 import { HeaderTabs } from './';
 
 const mockTabs = [
@@ -24,15 +25,15 @@ const mockTabs = [
 ];
 
 describe('<HeaderTabs />', () => {
-  it('should render tabs', async () => {
-    const rendered = await renderInTestApp(<HeaderTabs tabs={mockTabs} />);
+  it('should render tabs', () => {
+    const rendered = render(wrapInTestApp(<HeaderTabs tabs={mockTabs} />));
 
     expect(rendered.getByText('Overview')).toBeInTheDocument();
     expect(rendered.getByText('Docs')).toBeInTheDocument();
   });
 
-  it('should render correct selected tab', async () => {
-    const rendered = await renderInTestApp(<HeaderTabs tabs={mockTabs} />);
+  it('should render correct selected tab', () => {
+    const rendered = render(wrapInTestApp(<HeaderTabs tabs={mockTabs} />));
 
     expect(rendered.getByText('Docs').parentElement).toHaveAttribute(
       'aria-selected',

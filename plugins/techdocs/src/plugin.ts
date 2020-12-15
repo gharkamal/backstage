@@ -29,53 +29,24 @@
  * limitations under the License.
  */
 
-import {
-  createPlugin,
-  createRouteRef,
-  createApiFactory,
-  configApiRef,
-} from '@backstage/core';
-import {
-  techdocsStorageApiRef,
-  TechDocsStorageApi,
-  techdocsApiRef,
-  TechDocsApi,
-} from './api';
+import { createPlugin, createRouteRef } from '@backstage/core';
+import { TechDocsHome } from './reader/components/TechDocsHome';
+import { TechDocsPage } from './reader/components/TechDocsPage';
 
 export const rootRouteRef = createRouteRef({
-  path: '',
+  path: '/docs',
   title: 'TechDocs Landing Page',
 });
 
 export const rootDocsRouteRef = createRouteRef({
-  path: ':namespace/:kind/:name/*',
+  path: '/docs/:entityId/*',
   title: 'Docs',
 });
 
-export const rootCatalogDocsRouteRef = createRouteRef({
-  path: '*',
-  title: 'Docs',
-});
-
-// TODO: Use discovery API for frontend to get URL for techdocs-backend instead of requestUrl
 export const plugin = createPlugin({
   id: 'techdocs',
-  apis: [
-    createApiFactory({
-      api: techdocsStorageApiRef,
-      deps: { configApi: configApiRef },
-      factory: ({ configApi }) =>
-        new TechDocsStorageApi({
-          apiOrigin: configApi.getString('techdocs.requestUrl'),
-        }),
-    }),
-    createApiFactory({
-      api: techdocsApiRef,
-      deps: { configApi: configApiRef },
-      factory: ({ configApi }) =>
-        new TechDocsApi({
-          apiOrigin: configApi.getString('techdocs.requestUrl'),
-        }),
-    }),
-  ],
+  register({ router }) {
+    router.addRoute(rootRouteRef, TechDocsHome);
+    router.addRoute(rootDocsRouteRef, TechDocsPage);
+  },
 });

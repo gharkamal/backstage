@@ -19,11 +19,7 @@ import express from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import fs from 'fs';
-import { GraphQLModule } from '@graphql-modules/core';
 import { ApolloServer } from 'apollo-server-express';
-import { createModule as createCatalogModule } from '@backstage/plugin-catalog-graphql';
-import { Config } from '@backstage/config';
-import helmet from 'helmet';
 
 const schemaPath = resolvePackagePath(
   '@backstage/plugin-graphql-backend',
@@ -32,7 +28,6 @@ const schemaPath = resolvePackagePath(
 
 export interface RouterOptions {
   logger: Logger;
-  config: Config;
 }
 
 export async function createRouter(
@@ -40,38 +35,15 @@ export async function createRouter(
 ): Promise<express.Router> {
   const typeDefs = await fs.promises.readFile(schemaPath, 'utf-8');
 
-  const catalogModule = await createCatalogModule(options);
-
-  const { schema } = new GraphQLModule({
-    imports: [catalogModule],
-    typeDefs,
-  });
-
-  const server = new ApolloServer({
-    schema,
-    logger: options.logger,
-    introspection: true,
-    playground: process.env.NODE_ENV === 'development',
-  });
-
+  const server = new ApolloServer({ typeDefs, logger: options.logger });
   const router = Router();
+
+  const apolloMiddleware = server.getMiddleware({ path: '/' });
+  router.use(apolloMiddleware);
 
   router.get('/health', (_, response) => {
     response.send({ status: 'ok' });
   });
-
-  const apolloMiddleware = server.getMiddleware({ path: '/' });
-
-  if (process.env.NODE_ENV === 'development')
-    router.use(
-      helmet.contentSecurityPolicy({
-        directives: {
-          defaultSrc: ["'self'", "'unsafe-inline'", 'http://*'],
-        },
-      }),
-    );
-
-  router.use(apolloMiddleware);
 
   router.use(errorHandler());
 

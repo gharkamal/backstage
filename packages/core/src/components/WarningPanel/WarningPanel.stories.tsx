@@ -19,7 +19,7 @@ import { WarningPanel } from './WarningPanel';
 import { Link, Button } from '@material-ui/core';
 
 export default {
-  title: 'Feedback/Warning Panel',
+  title: 'Warning Panel',
   component: WarningPanel,
 };
 

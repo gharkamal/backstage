@@ -15,3 +15,5 @@
  */
 
 export { Page } from './Page';
+export { pageTheme } from './PageThemeProvider';
+export type { PageTheme } from './PageThemeProvider';

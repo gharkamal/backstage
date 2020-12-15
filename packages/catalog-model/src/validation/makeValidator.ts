@@ -23,6 +23,7 @@ const defaultValidators: Validators = {
   isValidKind: KubernetesValidatorFunctions.isValidKind,
   isValidEntityName: KubernetesValidatorFunctions.isValidObjectName,
   isValidNamespace: KubernetesValidatorFunctions.isValidNamespace,
+  normalizeEntityName: CommonValidatorFunctions.normalizeToLowercaseAlphanum,
   isValidLabelKey: KubernetesValidatorFunctions.isValidLabelKey,
   isValidLabelValue: KubernetesValidatorFunctions.isValidLabelValue,
   isValidAnnotationKey: KubernetesValidatorFunctions.isValidAnnotationKey,

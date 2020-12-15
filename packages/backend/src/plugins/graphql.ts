@@ -30,14 +30,10 @@
  */
 
 import { createRouter } from '@backstage/plugin-graphql-backend';
-import { PluginEnvironment } from '../types';
+import type { PluginEnvironment } from '../types';
 
-export default async function createPlugin({
-  logger,
-  config,
-}: PluginEnvironment) {
+export default async function createPlugin({ logger }: PluginEnvironment) {
   return await createRouter({
     logger,
-    config,
   });
 }

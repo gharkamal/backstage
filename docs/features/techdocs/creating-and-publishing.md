@@ -2,7 +2,6 @@
 id: creating-and-publishing
 title: Creating and publishing your docs
 sidebar_label: Creating and Publishing Documentation
-description: Guidance on how to create and publish documentation
 ---
 
 This section will guide you through:
@@ -12,42 +11,37 @@ This section will guide you through:
   - [Manually add documentation setup to already existing repository](#manually-add-documentation-setup-to-already-existing-repository)
 - [Writing and previewing your documentation](#writing-and-previewing-your-documentation)
 
-## Prerequisites
+## Prerequisities
 
 - A working Backstage instance with TechDocs installed (see
   [TechDocs getting started](getting-started.md))
 
 ## Create a basic documentation setup
 
-If you have an existing repository that you'd like to add documentation to, skip
-to the
-[Manually add documentation setup](#manually-add-documentation-setup-to-already-existing-repository)
-section below. Otherwise, continue reading to start a documentation repo from
-scratch.
-
 ### Use the documentation template
 
 Your working Backstage instance should by default have a documentation template
 added. If not, follow these
 [instructions](../software-templates/installation.md#adding-templates) to add
-the documentation template. The template creates a component with only TechDocs
-configuration and default markdown files as below mentioned in manual
-documentation setup, and is otherwise empty.
+the documentation template.
 
 ![Documentation Template](../../assets/techdocs/documentation-template.png)
 
 Create an entity from the documentation template and you will get the needed
 setup for free.
 
+!!! warning Currently the Backstage Software Templates are limited to create
+repositories inside GitHub organizations. You also need to generate an personal
+access token and use as an environment variable. Read more about this
+[here](../software-templates/installation.md#runtime-dependencies).
+
 ### Manually add documentation setup to already existing repository
 
 Prerequisities:
 
-- An existing component
-  [registered in backstage](../software-catalog/index.md#adding-components-to-the-catalog)
-  (e.g. via a `catalog-info.yaml` file).
+- `catalog-info.yml` file registered to Backstage.
 
-Create an `mkdocs.yml` file in the root of your repository with the following
+Create a `mkdocs.yml` file in the root of the repository with the following
 content:
 
 ```yaml
@@ -60,8 +54,8 @@ plugins:
   - techdocs-core
 ```
 
-Update your component's entity description by adding the following lines to its
-`catalog-info.yaml` in the root of its repository:
+Update your `catalog-info.yaml` file in the root of the repository with the
+following content:
 
 ```yaml
 metadata:
@@ -69,7 +63,7 @@ metadata:
     backstage.io/techdocs-ref: dir:./
 ```
 
-Create a `/docs` folder in the root of the project with at least an `index.md`
+Create a `/docs` folder in the root of the project with at least a `index.md`
 file. _(If you add more markdown files, make sure to update the nav in the
 mkdocs.yml file to get a proper navigation for your documentation.)_
 
@@ -87,12 +81,12 @@ updated documentation next time you run Backstage!
 ## Writing and previewing your documentation
 
 Using the `techdocs-cli` you can preview your docs inside a local Backstage
-instance and get live reload on changes. This is useful when you want to preview
-your documentation while writing.
+instance and get automatic recompilation on changes. This is useful for when you
+want to write your documentation.
 
 To do this you can run:
 
 ```bash
-cd /path/to/docs-repository/
-npx @techdocs/cli serve
+cd ~/<repository-path>/
+npx techdocs-cli serve
 ```

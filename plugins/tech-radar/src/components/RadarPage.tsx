@@ -15,41 +15,31 @@
  */
 
 import React from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import {
   Content,
   ContentHeader,
   Page,
   Header,
+  HeaderLabel,
   SupportButton,
+  pageTheme,
+  useApi,
 } from '@backstage/core';
 import RadarComponent from '../components/RadarComponent';
-import { TechRadarComponentProps } from '../api';
+import { techRadarApiRef, TechRadarApi } from '../api';
 
-const useStyles = makeStyles(() => ({
-  overflowXScroll: {
-    overflowX: 'scroll',
-  },
-}));
+const RadarPage = (): JSX.Element => {
+  const techRadarApi = useApi<TechRadarApi>(techRadarApiRef);
 
-export type TechRadarPageProps = TechRadarComponentProps & {
-  title?: string;
-  subtitle?: string;
-  pageTitle?: string;
-};
-
-export const RadarPage = ({
-  title,
-  subtitle,
-  pageTitle,
-  ...props
-}: TechRadarPageProps): JSX.Element => {
-  const classes = useStyles();
   return (
-    <Page themeId="tool">
-      <Header title={title} subtitle={subtitle} />
-      <Content className={classes.overflowXScroll}>
-        <ContentHeader title={pageTitle}>
+    <Page theme={pageTheme.tool}>
+      <Header title={techRadarApi.title} subtitle={techRadarApi.subtitle}>
+        <HeaderLabel label="Owner" value="Spotify" />
+        <HeaderLabel label="Lifecycle" value="Beta" />
+      </Header>
+      <Content>
+        <ContentHeader title={techRadarApi.pageTitle}>
           <SupportButton>
             This is used for visualizing the official guidelines of different
             areas of software development such as languages, frameworks,
@@ -58,7 +48,7 @@ export const RadarPage = ({
         </ContentHeader>
         <Grid container spacing={3} direction="row">
           <Grid item xs={12} sm={6} md={4}>
-            <RadarComponent {...props} />
+            <RadarComponent {...techRadarApi} />
           </Grid>
         </Grid>
       </Content>
@@ -66,8 +56,4 @@ export const RadarPage = ({
   );
 };
 
-RadarPage.defaultProps = {
-  title: 'Tech Radar',
-  subtitle: 'Pick the recommended technologies for your projects',
-  pageTitle: 'Company Radar',
-};
+export default RadarPage;

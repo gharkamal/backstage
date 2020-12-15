@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-import {
-  ApiProvider,
-  ApiRegistry,
-  createRouteRef,
-  errorApiRef,
-} from '@backstage/core';
-import { catalogApiRef } from '@backstage/plugin-catalog';
-import { lightTheme } from '@backstage/theme';
-import { ThemeProvider } from '@material-ui/core';
-import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { render, cleanup } from '@testing-library/react';
+import RegisterComponentPage from './RegisterComponentPage';
+import { ThemeProvider } from '@material-ui/core';
+import { lightTheme } from '@backstage/theme';
+import { errorApiRef, ApiProvider, ApiRegistry } from '@backstage/core';
+import { catalogApiRef } from '@backstage/plugin-catalog';
 import { MemoryRouter } from 'react-router-dom';
-import { RegisterComponentPage } from './RegisterComponentPage';
 
-const errorApi: jest.Mocked<typeof errorApiRef.T> = {
-  post: jest.fn(),
-  error$: jest.fn(),
-};
+const errorApi = { post: () => {} };
 
 const catalogApi: jest.Mocked<typeof catalogApiRef.T> = {
   /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  addLocation: jest.fn(_a => new Promise(() => {})),
+  addLocation: jest.fn((_a, _b) => new Promise(() => {})),
   getEntities: jest.fn(),
   getLocationByEntity: jest.fn(),
   getLocationById: jest.fn(),
@@ -43,31 +35,30 @@ const catalogApi: jest.Mocked<typeof catalogApiRef.T> = {
   getEntityByName: jest.fn(),
 };
 
-const Wrapper = ({ children }: { children?: React.ReactNode }) => (
-  <MemoryRouter>
-    <ApiProvider
-      apis={ApiRegistry.with(errorApiRef, errorApi).with(
-        catalogApiRef,
-        catalogApi,
-      )}
-    >
-      <ThemeProvider theme={lightTheme}>{children}</ThemeProvider>
-    </ApiProvider>
-  </MemoryRouter>
-);
+const setup = () => ({
+  rendered: render(
+    <MemoryRouter>
+      <ApiProvider
+        apis={ApiRegistry.from([
+          [errorApiRef, errorApi],
+          [catalogApiRef, catalogApi],
+        ])}
+      >
+        <ThemeProvider theme={lightTheme}>
+          <RegisterComponentPage />
+        </ThemeProvider>
+      </ApiProvider>
+    </MemoryRouter>,
+  ),
+});
 
 describe('RegisterComponentPage', () => {
-  it('should render', () => {
-    render(
-      <RegisterComponentPage
-        catalogRouteRef={createRouteRef({
-          path: '/catalog',
-          title: 'Service Catalog',
-        })}
-      />,
-      { wrapper: Wrapper },
-    );
+  afterEach(() => cleanup());
 
-    expect(screen.getByText('Register existing component')).toBeInTheDocument();
+  it('should render', () => {
+    const { rendered } = setup();
+    expect(
+      rendered.getByText('Register existing component'),
+    ).toBeInTheDocument();
   });
 });

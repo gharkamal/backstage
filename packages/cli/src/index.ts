@@ -27,11 +27,17 @@ const main = (argv: string[]) => {
 
   program.on('command:*', () => {
     console.log();
-    console.log(chalk.red(`Invalid command: ${program.args.join(' ')}`));
+    console.log(
+      chalk.red(`Invalid command: ${chalk.cyan(program.args.join(' '))}`),
+    );
+    console.log(chalk.red('See --help for a list of available commands.'));
     console.log();
-    program.outputHelp();
     process.exit(1);
   });
+
+  if (!process.argv.slice(2).length) {
+    program.outputHelp(chalk.yellow);
+  }
 
   program.parse(argv);
 };

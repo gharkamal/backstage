@@ -16,5 +16,12 @@
 
 export { HigherOrderOperations } from './HigherOrderOperations';
 export { LocationReaders } from './LocationReaders';
-export * from './types';
+export type {
+  AddLocationResult,
+  HigherOrderOperation,
+  LocationReader,
+  ReadLocationEntity,
+  ReadLocationError,
+  ReadLocationResult,
+} from './types';
 export * from './processors';

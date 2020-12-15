@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Entity, ENTITY_DEFAULT_NAMESPACE } from '@backstage/catalog-model';
 import { createRouteRef } from '@backstage/core';
 
 const NoIcon = () => null;
@@ -26,17 +25,6 @@ export const rootRoute = createRouteRef({
 });
 export const entityRoute = createRouteRef({
   icon: NoIcon,
-  path: ':namespace/:kind/:name/*',
+  path: ':kind/:optionalNamespaceAndName/*',
   title: 'Entity',
 });
-
-// Utility function to get suitable route params for entityRoute, given an
-// entity instance
-export function entityRouteParams(entity: Entity) {
-  return {
-    kind: entity.kind.toLowerCase(),
-    namespace:
-      entity.metadata.namespace?.toLowerCase() ?? ENTITY_DEFAULT_NAMESPACE,
-    name: entity.metadata.name,
-  } as const;
-}

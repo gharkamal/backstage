@@ -6,7 +6,9 @@ Set up Backstage and TechDocs by follow our guide on [Getting Started](../../doc
 
 ## Configuration
 
-http://backstage.io/docs/features/techdocs/configuration
+### Custom Storage URL
+
+TechDocs will try to read your documentation from the URL you have specified in the `techdocs storageUrl` in `app-config.yml`.
 
 ### TechDocs Storage Api
 

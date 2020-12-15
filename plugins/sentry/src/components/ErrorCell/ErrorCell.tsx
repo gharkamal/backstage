@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import React from 'react';
-import { SentryIssue } from '../../api';
+import React, { FC } from 'react';
+import { SentryIssue } from '../../data/sentry-issue';
 import { Link, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { BackstageTheme } from '@backstage/theme';
@@ -42,7 +41,9 @@ const useStyles = makeStyles<BackstageTheme>(theme => ({
   },
 }));
 
-export const ErrorCell = ({ sentryIssue }: { sentryIssue: SentryIssue }) => {
+export const ErrorCell: FC<{ sentryIssue: SentryIssue }> = ({
+  sentryIssue,
+}) => {
   const classes = useStyles();
   return (
     <div className={classes.root}>

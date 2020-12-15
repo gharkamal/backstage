@@ -14,42 +14,30 @@
  * limitations under the License.
  */
 
-import { RouteRefConfig, RouteRef } from './types';
+import type { RouteRefConfig, RouteRefOverrideConfig } from './types';
 
-export class AbsoluteRouteRef<Params extends { [param in string]: string }> {
-  constructor(private readonly config: RouteRefConfig<Params>) {}
+export class MutableRouteRef {
+  private effectiveConfig: RouteRefConfig = this.config;
 
-  get icon() {
-    return this.config.icon;
+  constructor(private readonly config: RouteRefConfig) {}
+
+  override(overrideConfig: RouteRefOverrideConfig) {
+    this.effectiveConfig = { ...this.config, ...overrideConfig };
   }
 
-  // TODO(Rugvip): Remove this, routes are looked up via the registry instead
+  get icon() {
+    return this.effectiveConfig.icon;
+  }
+
   get path() {
-    return this.config.path;
+    return this.effectiveConfig.path;
   }
 
   get title() {
-    return this.config.title;
-  }
-
-  /**
-   * This function should not be used, create a separate RouteRef instead
-   * @deprecated
-   */
-  createSubRoute(): any {
-    throw new Error(
-      'This method should not be called, create a separate RouteRef instead',
-    );
-  }
-
-  toString() {
-    return `routeRef{path=${this.path}}`;
+    return this.effectiveConfig.title;
   }
 }
 
-export function createRouteRef<
-  ParamKeys extends string,
-  Params extends { [param in string]: string } = { [name in ParamKeys]: string }
->(config: RouteRefConfig<Params>): RouteRef<Params> {
-  return new AbsoluteRouteRef<Params>(config);
+export function createRouteRef(config: RouteRefConfig): MutableRouteRef {
+  return new MutableRouteRef(config);
 }

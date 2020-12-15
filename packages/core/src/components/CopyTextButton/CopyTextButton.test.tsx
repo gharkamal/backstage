@@ -15,9 +15,8 @@
  */
 
 import React from 'react';
-import { fireEvent } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
-import { renderInTestApp } from '@backstage/test-utils';
+import { render } from '@testing-library/react';
+import { wrapInTestApp } from '@backstage/test-utils';
 import { CopyTextButton } from './CopyTextButton';
 import {
   ApiRegistry,
@@ -56,30 +55,29 @@ const apiRegistry = ApiRegistry.from([
 ]);
 
 describe('<CopyTextButton />', () => {
-  it('renders without exploding', async () => {
-    const { getByDisplayValue } = await renderInTestApp(
-      <ApiProvider apis={apiRegistry}>
-        <CopyTextButton {...props} />
-      </ApiProvider>,
+  it('renders without exploding', () => {
+    const { getByDisplayValue } = render(
+      wrapInTestApp(
+        <ApiProvider apis={apiRegistry}>
+          <CopyTextButton {...props} />
+        </ApiProvider>,
+      ),
     );
     getByDisplayValue('mockText');
   });
 
   it('displays tooltip on click', async () => {
-    jest.useFakeTimers();
     document.execCommand = jest.fn();
-    const rendered = await renderInTestApp(
-      <ApiProvider apis={apiRegistry}>
-        <CopyTextButton {...props} />
-      </ApiProvider>,
+    const rendered = render(
+      wrapInTestApp(
+        <ApiProvider apis={apiRegistry}>
+          <CopyTextButton {...props} />
+        </ApiProvider>,
+      ),
     );
     const button = rendered.getByTitle('mockTooltip');
-    fireEvent.click(button);
-    act(() => {
-      jest.runAllTimers();
-    });
+    button.click();
     expect(document.execCommand).toHaveBeenCalled();
     rendered.getByText('mockTooltip');
-    jest.useRealTimers();
   });
 });

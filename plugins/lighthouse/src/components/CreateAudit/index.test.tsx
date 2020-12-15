@@ -24,21 +24,19 @@ jest.mock('react-router-dom', () => {
 });
 
 import React from 'react';
-import { waitFor, render, fireEvent } from '@testing-library/react';
+import mockFetch from 'jest-fetch-mock';
+import { wait, render, fireEvent } from '@testing-library/react';
 import {
   ApiRegistry,
   ApiProvider,
   ErrorApi,
   errorApiRef,
 } from '@backstage/core';
-import { wrapInTestApp, msw } from '@backstage/test-utils';
+import { wrapInTestApp } from '@backstage/test-utils';
 
 import { lighthouseApiRef, LighthouseRestApi, Audit } from '../../api';
 import CreateAudit from '.';
 import * as data from '../../__fixtures__/create-audit-response.json';
-
-import { setupServer } from 'msw/node';
-import { rest } from 'msw';
 
 const { useNavigate }: { useNavigate: jest.Mock } = jest.requireMock(
   'react-router-dom',
@@ -49,8 +47,6 @@ const createAuditResponse = data as Audit;
 describe('CreateAudit', () => {
   let apis: ApiRegistry;
   let errorApi: ErrorApi;
-  const server = setupServer();
-  msw.setupDefaultHandlers(server);
 
   beforeEach(() => {
     errorApi = { post: jest.fn(), error$: jest.fn() };
@@ -82,7 +78,9 @@ describe('CreateAudit', () => {
             <CreateAudit />
           </ApiProvider>,
           {
-            routeEntries: [`/create-audit?url=${encodeURIComponent(url)}`],
+            routeEntries: [
+              `/lighthouse/create-audit?url=${encodeURIComponent(url)}`,
+            ],
           },
         ),
       );
@@ -92,7 +90,7 @@ describe('CreateAudit', () => {
 
   describe('when waiting on the request', () => {
     it('disables the form fields', () => {
-      server.use(rest.get('*', (_req, res, ctx) => res(ctx.delay(20000))));
+      mockFetch.mockResponseOnce(() => new Promise(() => {}));
 
       const rendered = render(
         wrapInTestApp(
@@ -115,11 +113,7 @@ describe('CreateAudit', () => {
   describe('when the audit is successfully created', () => {
     it('triggers a location change to the table', async () => {
       useNavigate.mockClear();
-      server.use(
-        rest.post('http://lighthouse/v1/audits', (_req, res, ctx) =>
-          res(ctx.json(createAuditResponse)),
-        ),
-      );
+      mockFetch.mockResponseOnce(JSON.stringify(createAuditResponse));
 
       const rendered = render(
         wrapInTestApp(
@@ -134,19 +128,24 @@ describe('CreateAudit', () => {
       });
       fireEvent.click(rendered.getByText(/Create Audit/));
 
-      await waitFor(() => expect(rendered.getByLabelText(/URL/)).toBeEnabled());
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://lighthouse/v1/audits',
+        expect.objectContaining({
+          method: 'POST',
+        }),
+      );
 
-      expect(useNavigate()).toHaveBeenCalledWith('..');
+      await wait(() => expect(rendered.getByLabelText(/URL/)).toBeEnabled());
+
+      expect(useNavigate()).toHaveBeenCalledWith('/lighthouse');
     });
   });
 
   describe('when the audits fail', () => {
     it('should render an error', async () => {
-      server.use(
-        rest.post('http://lighthouse/v1/audits', (_req, res, ctx) =>
-          res(ctx.status(500, 'failed to post')),
-        ),
-      );
+      (errorApi.post as jest.Mock).mockClear();
+      mockFetch.mockRejectOnce(new Error('failed to post'));
+
       const rendered = render(
         wrapInTestApp(
           <ApiProvider apis={apis}>
@@ -160,7 +159,8 @@ describe('CreateAudit', () => {
       });
       fireEvent.click(rendered.getByText(/Create Audit/));
 
-      await waitFor(() => expect(rendered.getByLabelText(/URL/)).toBeEnabled());
+      await wait(() => expect(rendered.getByLabelText(/URL/)).toBeEnabled());
+      await new Promise(r => setTimeout(r, 0));
 
       expect(errorApi.post).toHaveBeenCalledWith(expect.any(Error));
     });

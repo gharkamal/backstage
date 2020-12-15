@@ -16,7 +16,7 @@
 
 import { ClickAwayListener, makeStyles, Typography } from '@material-ui/core';
 import React, {
-  PropsWithChildren,
+  FC,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -93,12 +93,12 @@ type Placement = {
   textWidth: number;
 };
 
-export const FeatureCalloutCircular = ({
+export const FeatureCalloutCircular: FC<Props> = ({
   featureId,
   title,
   description,
   children,
-}: PropsWithChildren<Props>) => {
+}) => {
   const { show, hide } = useShowCallout(featureId);
   const portalElement = usePortal('core.callout');
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -160,7 +160,6 @@ export const FeatureCalloutCircular = ({
             <>
               <div
                 className={classes.dot}
-                data-testid="dot"
                 style={{
                   left: placement?.dotLeft,
                   top: placement?.dotTop,
@@ -177,7 +176,6 @@ export const FeatureCalloutCircular = ({
               </div>
               <div
                 className={classes.text}
-                data-testid="text"
                 style={{
                   left: placement?.textLeft,
                   top: placement?.textTop,

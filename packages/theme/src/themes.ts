@@ -15,8 +15,7 @@
  */
 
 import { createTheme } from './baseTheme';
-import { pageTheme } from './pageTheme';
-import { yellow } from '@material-ui/core/colors';
+import { blue, yellow } from '@material-ui/core/colors';
 
 export const lightTheme = createTheme({
   palette: {
@@ -40,13 +39,11 @@ export const lightTheme = createTheme({
       },
     },
     primary: {
-      main: '#2E77D0',
+      main: blue[500],
     },
     banner: {
       info: '#2E77D0',
       error: '#E22134',
-      text: '#FFFFFF',
-      link: '#000000',
     },
     border: '#E6E6E6',
     textContrast: '#000000',
@@ -65,8 +62,6 @@ export const lightTheme = createTheme({
     navigation: {
       background: '#171717',
       indicator: '#9BF0E1',
-      color: '#b5b5b5',
-      selectedColor: '#FFF',
     },
     pinSidebarButton: {
       icon: '#181818',
@@ -76,8 +71,6 @@ export const lightTheme = createTheme({
       indicator: '#9BF0E1',
     },
   },
-  defaultPageTheme: 'home',
-  pageTheme,
 });
 
 export const darkTheme = createTheme({
@@ -87,12 +80,12 @@ export const darkTheme = createTheme({
       default: '#333333',
     },
     status: {
-      ok: '#71CF88',
-      warning: '#FFB84D',
-      error: '#F84C55',
-      running: '#3488E3',
-      pending: '#FEF071',
-      aborted: '#9E9E9E',
+      ok: '#1DB954',
+      warning: '#FF9800',
+      error: '#E22134',
+      running: '#2E77D0',
+      pending: '#FFED51',
+      aborted: '#757575',
     },
     bursts: {
       fontColor: '#FEFEFE',
@@ -102,18 +95,16 @@ export const darkTheme = createTheme({
       },
     },
     primary: {
-      main: '#2E77D0',
+      main: blue[500],
     },
     banner: {
       info: '#2E77D0',
       error: '#E22134',
-      text: '#FFFFFF',
-      link: '#000000',
     },
     border: '#E6E6E6',
     textContrast: '#FFFFFF',
-    textVerySubtle: '#727272',
-    textSubtle: '#CCCCCC',
+    textVerySubtle: '#DDD',
+    textSubtle: '#EEEEEE',
     highlight: '#FFFBCC',
     errorBackground: '#FFEBEE',
     warningBackground: '#F59B23',
@@ -127,8 +118,6 @@ export const darkTheme = createTheme({
     navigation: {
       background: '#424242',
       indicator: '#9BF0E1',
-      color: '#b5b5b5',
-      selectedColor: '#FFF',
     },
     pinSidebarButton: {
       icon: '#404040',
@@ -138,6 +127,4 @@ export const darkTheme = createTheme({
       indicator: '#9BF0E1',
     },
   },
-  defaultPageTheme: 'home',
-  pageTheme,
 });

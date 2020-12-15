@@ -13,18 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Entity, ENTITY_DEFAULT_NAMESPACE } from '@backstage/catalog-model';
-import { Content, Header, HeaderLabel, Page, Progress } from '@backstage/core';
-import { Box } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import React, { PropsWithChildren, useContext, useState } from 'react';
-import { useNavigate } from 'react-router';
+import React, { useState, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router';
+
 import { EntityContext } from '../../hooks/useEntity';
-import { EntityContextMenu } from '../EntityContextMenu/EntityContextMenu';
+import {
+  pageTheme,
+  PageTheme,
+  Page,
+  Header,
+  HeaderLabel,
+  Content,
+  Progress,
+} from '@backstage/core';
+import { Entity } from '@backstage/catalog-model';
 import { FavouriteEntity } from '../FavouriteEntity/FavouriteEntity';
+import { Box } from '@material-ui/core';
+import { EntityContextMenu } from '../EntityContextMenu/EntityContextMenu';
 import { UnregisterEntityDialog } from '../UnregisterEntityDialog/UnregisterEntityDialog';
-import { useEntityCompoundName } from '../useEntityCompoundName';
+import { Alert } from '@material-ui/lab';
 import { Tabbed } from './Tabbed';
+
+const getPageTheme = (entity?: Entity): PageTheme => {
+  const themeKey = entity?.spec?.type?.toString() ?? 'home';
+  return pageTheme[themeKey] ?? pageTheme.home;
+};
 
 const EntityPageTitle = ({
   entity,
@@ -39,18 +52,14 @@ const EntityPageTitle = ({
   </Box>
 );
 
-const headerProps = (
+function headerProps(
   kind: string,
   namespace: string | undefined,
   name: string,
   entity: Entity | undefined,
-): { headerTitle: string; headerType: string } => {
+): { headerTitle: string; headerType: string } {
   return {
-    headerTitle: `${name}${
-      namespace && namespace !== ENTITY_DEFAULT_NAMESPACE
-        ? ` in ${namespace}`
-        : ''
-    }`,
+    headerTitle: `${name}${namespace ? ` in ${namespace}` : ''}`,
     headerType: (() => {
       let t = kind.toLowerCase();
       if (entity && entity.spec && 'type' in entity.spec) {
@@ -60,10 +69,19 @@ const headerProps = (
       return t;
     })(),
   };
-};
+}
 
-export const EntityPageLayout = ({ children }: PropsWithChildren<{}>) => {
-  const { kind, namespace, name } = useEntityCompoundName();
+export const EntityPageLayout = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => {
+  const { optionalNamespaceAndName, kind } = useParams() as {
+    optionalNamespaceAndName: string;
+    kind: string;
+  };
+  const [name, namespace] = optionalNamespaceAndName.split(':').reverse();
+
   const { entity, loading, error } = useContext(EntityContext);
   const { headerTitle, headerType } = headerProps(
     kind,
@@ -82,14 +100,13 @@ export const EntityPageLayout = ({ children }: PropsWithChildren<{}>) => {
   const showRemovalDialog = () => setConfirmationDialogOpen(true);
 
   return (
-    <Page themeId={entity?.spec?.type?.toString() ?? 'home'}>
+    <Page theme={getPageTheme(entity!)}>
       <Header
         title={<EntityPageTitle title={headerTitle} entity={entity!} />}
         pageTitleOverride={headerTitle}
         type={headerType}
       >
-        {/* TODO: fix after catalog page customization is added */}
-        {entity && kind !== 'user' && (
+        {entity && (
           <>
             <HeaderLabel
               label="Owner"

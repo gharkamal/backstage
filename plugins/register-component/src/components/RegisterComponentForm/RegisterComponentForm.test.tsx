@@ -14,40 +14,53 @@
  * limitations under the License.
  */
 
-import { act, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { RegisterComponentForm } from './RegisterComponentForm';
+import { act } from 'react-dom/test-utils';
+import RegisterComponentForm, { Props } from './RegisterComponentForm';
 
+const setup = (props?: Partial<Props>) => {
+  return {
+    rendered: render(
+      <RegisterComponentForm
+        onSubmit={jest.fn()}
+        submitting={false}
+        {...props}
+      />,
+    ),
+  };
+};
 describe('RegisterComponentForm', () => {
-  it('should initially render disabled buttons', async () => {
-    render(<RegisterComponentForm onSubmit={jest.fn()} />);
+  afterEach(() => cleanup());
 
+  it('should initially render a disabled button', async () => {
+    const { rendered } = setup();
     expect(
-      await screen.findByText(/Enter the full path to the catalog-info.yaml/),
+      await rendered.findByText(
+        'Enter the full path to the component.yaml file in GitHub, GitLab, Bitbucket or Azure to start tracking your component.',
+      ),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Validate').closest('button')).toBeDisabled();
-    expect(screen.getByText('Register').closest('button')).toBeDisabled();
+    const submit = (await rendered.getByRole('button')) as HTMLButtonElement;
+    expect(submit.disabled).toBeTruthy();
   });
 
-  it('should enable the submit buttons when the target url is set', async () => {
-    render(<RegisterComponentForm onSubmit={jest.fn()} />);
-
+  it('should enable a submit form when data when component url is set ', async () => {
+    const { rendered } = setup();
+    const input = (await rendered.getByRole('textbox')) as HTMLInputElement;
     await act(async () => {
-      await userEvent.type(
-        await screen.findByLabelText('Entity file URL', { exact: false }),
-        'https://example.com/blob/master/component.yaml',
-      );
+      // react-hook-form uses `input` event for changes
+      fireEvent.input(input, {
+        target: { value: 'https://example.com/blob/master/component.yaml' },
+      });
     });
+    const submit = (await rendered.getByRole('button')) as HTMLButtonElement;
 
-    expect(screen.getByText('Validate').closest('button')).not.toBeDisabled();
-    expect(screen.getByText('Register').closest('button')).not.toBeDisabled();
+    expect(submit.disabled).toBeFalsy();
   });
+});
 
-  it('should show spinner while submitting', async () => {
-    render(<RegisterComponentForm onSubmit={jest.fn()} submitting />);
-
-    expect(screen.getByTestId('loading-progress')).toBeInTheDocument();
-  });
+it('should show spinner while submitting', async () => {
+  const { rendered } = setup({ submitting: true });
+  expect(rendered.getByTestId('loading-progress')).toBeInTheDocument();
 });

@@ -15,6 +15,5 @@
  */
 
 export { plugin } from './plugin';
-export { GraphiQLPage as Router } from './components';
 export * from './lib/api';
 export * from './route-refs';

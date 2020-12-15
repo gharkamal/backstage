@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import { PluginEndpointDiscovery } from '@backstage/backend-common';
-import { CatalogApi } from '@backstage/catalog-client';
-import { Config } from '@backstage/config';
 import express from 'express';
 import { Logger } from 'winston';
 import { TokenIssuer } from '../identity';
+import { Config } from '@backstage/config';
 
 export type AuthProviderConfig = {
   /**
@@ -113,13 +111,10 @@ export interface AuthProviderRouteHandlers {
 }
 
 export type AuthProviderFactoryOptions = {
-  providerId: string;
   globalConfig: AuthProviderConfig;
   config: Config;
   logger: Logger;
   tokenIssuer: TokenIssuer;
-  discovery: PluginEndpointDiscovery;
-  catalogApi: CatalogApi;
 };
 
 export type AuthProviderFactory = (

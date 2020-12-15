@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-import {
-  Entity,
-  EntityRelationSpec,
-  LocationSpec,
-} from '@backstage/catalog-model';
+import { Entity, LocationSpec } from '@backstage/catalog-model';
 
-export type CatalogProcessor = {
+export type LocationProcessor = {
   /**
    * Reads the contents of a location.
    *
@@ -32,53 +28,35 @@ export type CatalogProcessor = {
   readLocation?(
     location: LocationSpec,
     optional: boolean,
-    emit: CatalogProcessorEmit,
+    emit: LocationProcessorEmit,
   ): Promise<boolean>;
 
   /**
-   * Pre-processes an emitted entity, after it has been emitted but before it
-   * has been validated.
+   * Parses a raw data buffer that was read from a location.
    *
-   * This type of processing usually involves enriching the entity with
-   * additional data, and the input entity may actually still be incomplete
-   * when the processor is invoked.
-   *
-   * @param entity The (possibly partial) entity to process
-   * @param location The location that the entity came from
-   * @param emit A sink for auxiliary items resulting from the processing
-   * @returns The same entity or a modified version of it
+   * @param data The data to parse
+   * @param location The location that the data came from
+   * @param emit A sink for items resulting from the parsing
+   * @returns True if handled by this processor, false otherwise
    */
-  preProcessEntity?(
-    entity: Entity,
+  parseData?(
+    data: Buffer,
     location: LocationSpec,
-    emit: CatalogProcessorEmit,
-  ): Promise<Entity>;
+    emit: LocationProcessorEmit,
+  ): Promise<boolean>;
 
   /**
-   * Validates the entity as a known entity kind, after it has been pre-
-   * processed and has passed through basic overall validation.
-   *
-   * @param entity The entity to validate
-   * @returns Resolves to true, if the entity was of a kind that was known and
-   *   handled by this processor, and was found to be valid. Resolves to false,
-   *   if the entity was not of a kind that was known by this processor.
-   *   Rejects to an Error describing the problem, if the entity was of a kind
-   *   that was known by this processor and was not valid.
-   */
-  validateEntityKind?(entity: Entity): Promise<boolean>;
-
-  /**
-   * Post-processes an emitted entity, after it has been validated.
+   * Processes an emitted entity, e.g. by validating or modifying it.
    *
    * @param entity The entity to process
    * @param location The location that the entity came from
    * @param emit A sink for auxiliary items resulting from the processing
-   * @returns The same entity or a modified version of it
+   * @returns The same entity or a modifid version of it
    */
-  postProcessEntity?(
+  processEntity?(
     entity: Entity,
     location: LocationSpec,
-    emit: CatalogProcessorEmit,
+    emit: LocationProcessorEmit,
   ): Promise<Entity>;
 
   /**
@@ -86,44 +64,46 @@ export type CatalogProcessor = {
    *
    * @param error The error
    * @param location The location where the error occurred
-   * @param emit A sink for items resulting from this handling
+   * @param emit A sink for items resulting from this handilng
    * @returns Nothing
    */
   handleError?(
     error: Error,
     location: LocationSpec,
-    emit: CatalogProcessorEmit,
+    emit: LocationProcessorEmit,
   ): Promise<void>;
 };
 
-export type CatalogProcessorEmit = (generated: CatalogProcessorResult) => void;
+export type LocationProcessorEmit = (
+  generated: LocationProcessorResult,
+) => void;
 
-export type CatalogProcessorLocationResult = {
+export type LocationProcessorLocationResult = {
   type: 'location';
   location: LocationSpec;
   optional: boolean;
 };
 
-export type CatalogProcessorEntityResult = {
+export type LocationProcessorDataResult = {
+  type: 'data';
+  data: Buffer;
+  location: LocationSpec;
+};
+
+export type LocationProcessorEntityResult = {
   type: 'entity';
   entity: Entity;
   location: LocationSpec;
 };
 
-export type CatalogProcessorRelationResult = {
-  type: 'relation';
-  relation: EntityRelationSpec;
-  entityRef?: string;
-};
-
-export type CatalogProcessorErrorResult = {
+export type LocationProcessorErrorResult = {
   type: 'error';
   error: Error;
   location: LocationSpec;
 };
 
-export type CatalogProcessorResult =
-  | CatalogProcessorLocationResult
-  | CatalogProcessorEntityResult
-  | CatalogProcessorRelationResult
-  | CatalogProcessorErrorResult;
+export type LocationProcessorResult =
+  | LocationProcessorLocationResult
+  | LocationProcessorDataResult
+  | LocationProcessorEntityResult
+  | LocationProcessorErrorResult;

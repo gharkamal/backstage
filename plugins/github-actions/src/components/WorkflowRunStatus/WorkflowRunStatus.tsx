@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-import {
-  StatusPending,
-  StatusRunning,
-  StatusOK,
-  StatusWarning,
-  StatusAborted,
-  StatusError,
-} from '@backstage/core';
+import { StatusPending, StatusRunning, StatusOK } from '@backstage/core';
 import React from 'react';
 
 export const WorkflowRunStatus = ({
   status,
-  conclusion,
 }: {
   status: string | undefined;
-  conclusion: string | undefined;
 }) => {
   if (status === undefined) return null;
   switch (status.toLowerCase()) {
@@ -46,32 +37,11 @@ export const WorkflowRunStatus = ({
         </>
       );
     case 'completed':
-      switch (conclusion?.toLowerCase()) {
-        case 'skipped' || 'canceled':
-          return (
-            <>
-              <StatusAborted /> Aborted
-            </>
-          );
-        case 'timed_out':
-          return (
-            <>
-              <StatusWarning /> Timed out
-            </>
-          );
-        case 'failure':
-          return (
-            <>
-              <StatusError /> Error
-            </>
-          );
-        default:
-          return (
-            <>
-              <StatusOK /> Completed
-            </>
-          );
-      }
+      return (
+        <>
+          <StatusOK /> Completed
+        </>
+      );
     default:
       return (
         <>

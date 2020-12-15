@@ -15,7 +15,6 @@
  */
 
 import { JsonObject } from '@backstage/config';
-import { EntityName } from '../types';
 
 /**
  * The format envelope that's common to all versions/kinds of entity.
@@ -43,11 +42,6 @@ export type Entity = {
    * The specification data describing the entity itself.
    */
   spec?: JsonObject;
-
-  /**
-   * The relations that this entity has with other entities.
-   */
-  relations?: EntityRelation[];
 };
 
 /**
@@ -93,7 +87,7 @@ export type EntityMeta = JsonObject & {
   /**
    * The name of the entity.
    *
-   * Must be unique within the catalog at any given point in time, for any
+   * Must be uniqe within the catalog at any given point in time, for any
    * given namespace + kind pair.
    */
   name: string;
@@ -128,36 +122,6 @@ export type EntityMeta = JsonObject & {
 };
 
 /**
- * A relation of a specific type to another entity in the catalog.
+ * The keys of EntityMeta that are auto-generated.
  */
-export type EntityRelation = {
-  /**
-   * The type of the relation.
-   */
-  type: string;
-
-  /**
-   * The target entity of this relation.
-   */
-  target: EntityName;
-};
-
-/**
- * Holds the relation data for entities.
- */
-export type EntityRelationSpec = {
-  /**
-   * The source entity of this relation.
-   */
-  source: EntityName;
-
-  /**
-   * The type of the relation.
-   */
-  type: string;
-
-  /**
-   * The target entity of this relation.
-   */
-  target: EntityName;
-};
+export const entityMetaGeneratedFields = ['uid', 'etag', 'generation'] as const;

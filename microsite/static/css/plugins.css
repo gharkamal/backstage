@@ -1,12 +1,12 @@
 .PluginCard {
-  background-color: #282828;
+  background-color: #272822;
   height: 100%;
   padding: 16px;
   display: flex;
   flex-direction: column;
 }
 
-.PluginGrid {
+.grid {
   display: grid;
   grid-gap: 1rem;
   grid-template-columns: repeat(4, 1fr);
@@ -15,20 +15,14 @@
 }
 
 @media (max-width: 1200px) {
-  .PluginGrid {
+  .grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media only screen and (max-width: 815px) {
-  .PluginGrid {
+  .grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media only screen and (max-width: 485px) {
-  .PluginGrid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -40,32 +34,14 @@
 }
 
 .PluginCardHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   max-height: fit-content;
   min-height: fit-content;
-}
-
-.PluginCardImage {
-  width: 80px;
-  height: 80px;
-  margin-right: 16px;
-}
-
-.PluginCardImage img {
-  width: 100%;
-  max-width: 100%;
 }
 
 .PluginCardTitle {
   color: white;
   vertical-align: top;
-  margin: 8px 0 0;
-}
-
-.PluginCardInfo {
-  flex: 1;
+  margin: 8px 0px 0px 16px;
 }
 
 .PluginAddNewButton {
@@ -74,41 +50,32 @@
   right: 0px;
 }
 
-@media only screen and (max-width: 485px) {
-  .PluginAddNewButton {
-    bottom: -4px;
-  }
-}
-
 .ButtonFilled {
   padding: 4px 8px;
   border-radius: 4px;
-  color: #69ddc7;
+  background-color: #36baa2;
+  color: white;
+  margin-top: 36px;
 }
 
 .ButtonFilled:hover {
-  border: 1px solid #69ddc7;
+  border: 1px solid #36baa2;
   background-color: transparent;
 }
 
-.PluginCardChipOutlined {
+.ChipOutlined {
   font-size: small;
   border-radius: 16px;
   padding: 2px 8px;
-  border: 1px solid #69ddc7;
-  color: #69ddc7;
+  border: 1px solid #36baa2;
+  color: #36baa2;
 }
 
-.PluginCardFooter {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-  margin-top: auto;
-  min-height: 2em;
-}
-
-.PluginCardFooter a {
+.PluginCardLink {
   padding: 2px 8px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 
 .PluginPageLayout {
@@ -129,16 +96,21 @@
   padding-top: 8px;
 }
 
-.PluginCardAuthor,
-.PluginCardAuthor a {
+.PluginCardFooter {
+  position: relative;
+  min-height: 2em;
+}
+
+.Author,
+.Author a {
   margin-bottom: 0.25em;
   color: rgba(255, 255, 255, 0.6);
 }
 
-.PluginCardAuthor a:hover {
+.Author a:hover {
   color: white;
 }
 
 #add-plugin-card {
-  border: 1px solid #69ddc7;
+  border: 1px solid #36baa2;
 }

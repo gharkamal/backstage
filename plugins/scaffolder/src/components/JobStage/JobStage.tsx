@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
-  CircularProgress,
+  ExpansionPanel,
+  ExpansionPanelDetails,
+  ExpansionPanelSummary,
   LinearProgress,
   Typography,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import cn from 'classnames';
 import moment from 'moment';
 import React, { Suspense, useEffect, useState } from 'react';
@@ -35,17 +32,18 @@ const LazyLog = React.lazy(() => import('react-lazylog/build/LazyLog'));
 moment.relativeTimeThreshold('ss', 0);
 
 const useStyles = makeStyles(theme => ({
-  accordionDetails: {
+  expansionPanelDetails: {
     padding: 0,
   },
   button: {
     order: -1,
-    margin: '0 1em 0 -20px',
+    marginRight: 0,
+    marginLeft: '-20px',
   },
   cardContent: {
     backgroundColor: theme.palette.background.default,
   },
-  accordion: {
+  expansionPanel: {
     position: 'relative',
     '&:after': {
       pointerEvents: 'none',
@@ -71,18 +69,6 @@ const useStyles = makeStyles(theme => ({
   completed: {
     '&:after': {
       boxShadow: `inset 4px 0px 0px ${theme.palette.success.main}`,
-    },
-  },
-  jobStatusTitle: {
-    display: 'flex',
-    width: '100%',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    [theme.breakpoints.down('xs')]: {
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
     },
   },
 }));
@@ -112,34 +98,31 @@ export const JobStage = ({ endedAt, startedAt, name, log, status }: Props) => {
       : null;
 
   return (
-    <Accordion
+    <ExpansionPanel
       TransitionProps={{ unmountOnExit: true }}
       className={cn(
-        classes.accordion,
+        classes.expansionPanel,
         classes[status.toLowerCase() as keyof ReturnType<typeof useStyles>] ??
           classes.neutral,
       )}
       expanded={expanded}
       onChange={(_, newState) => setExpanded(newState)}
     >
-      <AccordionSummary
-        expandIcon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+      <ExpansionPanelSummary
+        expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${name}-content`}
         id={`panel-${name}-header`}
         IconButtonProps={{
           className: classes.button,
         }}
       >
-        <Typography variant="button" className={classes.jobStatusTitle}>
-          {name} {timeElapsed && `(${timeElapsed})`}{' '}
-          {startedAt && !endedAt && <CircularProgress size="1em" />}
+        <Typography variant="button">
+          {name} {timeElapsed && `(${timeElapsed})`}
         </Typography>
-      </AccordionSummary>
-      <AccordionDetails className={classes.accordionDetails}>
+      </ExpansionPanelSummary>
+      <ExpansionPanelDetails className={classes.expansionPanelDetails}>
         {log.length === 0 ? (
-          <Box px={9} pb={2} width="100%">
-            No logs available for this step
-          </Box>
+          <Box px={4}>No logs available for this step</Box>
         ) : (
           <Suspense fallback={<LinearProgress />}>
             <div style={{ height: '20vh', width: '100%' }}>
@@ -147,7 +130,7 @@ export const JobStage = ({ endedAt, startedAt, name, log, status }: Props) => {
             </div>
           </Suspense>
         )}
-      </AccordionDetails>
-    </Accordion>
+      </ExpansionPanelDetails>
+    </ExpansionPanel>
   );
 };

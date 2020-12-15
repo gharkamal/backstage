@@ -18,7 +18,7 @@ import React from 'react';
 import { CopyTextButton } from '.';
 
 export default {
-  title: 'Inputs/CopyTextButton',
+  title: 'CopyTextButton',
   component: CopyTextButton,
 };
 

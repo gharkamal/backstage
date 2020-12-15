@@ -23,9 +23,6 @@ import {
   OAuthHandlers,
   OAuthResponse,
   OAuthEnvironmentHandler,
-  OAuthStartRequest,
-  encodeState,
-  OAuthRefreshRequest,
 } from '../../lib/oauth';
 import {
   executeFetchUserProfileStrategy,
@@ -87,13 +84,16 @@ export class OAuth2AuthProvider implements OAuthHandlers {
     );
   }
 
-  async start(req: OAuthStartRequest): Promise<RedirectInfo> {
-    return await executeRedirectStrategy(req, this._strategy, {
+  async start(
+    req: express.Request,
+    options: Record<string, string>,
+  ): Promise<RedirectInfo> {
+    const providerOptions = {
+      ...options,
       accessType: 'offline',
       prompt: 'consent',
-      scope: req.scope,
-      state: encodeState(req.state),
-    });
+    };
+    return await executeRedirectStrategy(req, this._strategy, providerOptions);
   }
 
   async handler(
@@ -110,11 +110,11 @@ export class OAuth2AuthProvider implements OAuthHandlers {
     };
   }
 
-  async refresh(req: OAuthRefreshRequest): Promise<OAuthResponse> {
+  async refresh(refreshToken: string, scope: string): Promise<OAuthResponse> {
     const refreshTokenResponse = await executeRefreshTokenStrategy(
       this._strategy,
-      req.refreshToken,
-      req.scope,
+      refreshToken,
+      scope,
     );
     const {
       accessToken,
@@ -148,7 +148,7 @@ export class OAuth2AuthProvider implements OAuthHandlers {
     const { profile } = response;
 
     if (!profile.email) {
-      throw new Error('Profile does not contain an email');
+      throw new Error('Profile does not contain a profile');
     }
     const id = profile.email.split('@')[0];
 
@@ -157,12 +157,12 @@ export class OAuth2AuthProvider implements OAuthHandlers {
 }
 
 export const createOAuth2Provider: AuthProviderFactory = ({
-  providerId,
   globalConfig,
   config,
   tokenIssuer,
 }) =>
   OAuthEnvironmentHandler.mapConfig(config, envConfig => {
+    const providerId = 'oauth2';
     const clientId = envConfig.getString('clientId');
     const clientSecret = envConfig.getString('clientSecret');
     const callbackUrl = `${globalConfig.baseUrl}/${providerId}/handler/frame`;

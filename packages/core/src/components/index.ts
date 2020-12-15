@@ -15,11 +15,9 @@
  */
 
 export * from './AlertDisplay';
-export * from './Avatar';
 export * from './Button';
 export * from './CodeSnippet';
 export * from './CopyTextButton';
-export * from './DependencyGraph';
 export * from './DismissableBanner';
 export * from './FeatureDiscovery';
 export * from './HorizontalScrollGrid';
@@ -36,5 +34,3 @@ export * from './Table';
 export * from './Tabs';
 export * from './TrendLine';
 export * from './WarningPanel';
-export * from './EmptyState';
-export * from './MarkdownContent';

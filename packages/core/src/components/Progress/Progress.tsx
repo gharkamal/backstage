@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import React, { useState, useEffect, PropsWithChildren } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { LinearProgress, LinearProgressProps } from '@material-ui/core';
 
-export const Progress = (props: PropsWithChildren<LinearProgressProps>) => {
+export const Progress: FC<LinearProgressProps> = props => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -28,6 +28,6 @@ export const Progress = (props: PropsWithChildren<LinearProgressProps>) => {
   return isVisible ? (
     <LinearProgress {...props} data-testid="progress" />
   ) : (
-    <div style={{ display: 'none' }} />
+    <div style={{ display: 'none' }} data-testid="progress" />
   );
 };

@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { RegisterComponentForm } from './RegisterComponentForm';
+export { default } from './RegisterComponentForm';

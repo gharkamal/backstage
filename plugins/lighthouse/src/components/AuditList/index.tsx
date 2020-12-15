@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { useState, useMemo, ReactNode } from 'react';
+
+import React, { useState, useMemo, FC, ReactNode } from 'react';
 import { useLocalStorage, useAsync } from 'react-use';
 import { useNavigate } from 'react-router-dom';
 import { Grid, Button } from '@material-ui/core';
@@ -27,6 +28,7 @@ import {
   ContentHeader,
   HeaderLabel,
   Progress,
+  pageTheme,
   useApi,
 } from '@backstage/core';
 
@@ -35,11 +37,10 @@ import { useQuery } from '../../utils';
 import LighthouseSupportButton from '../SupportButton';
 import LighthouseIntro, { LIGHTHOUSE_INTRO_LOCAL_STORAGE } from '../Intro';
 import AuditListTable from './AuditListTable';
-import { createAuditRouteRef } from '../../plugin';
 
 export const LIMIT = 10;
 
-const AuditList = () => {
+const AuditList: FC<{}> = () => {
   const [dismissedStored] = useLocalStorage(LIGHTHOUSE_INTRO_LOCAL_STORAGE);
   const [dismissed, setDismissed] = useState(dismissedStored);
 
@@ -76,7 +77,7 @@ const AuditList = () => {
             page={page}
             count={pageCount}
             onChange={(_event: Event, newPage: number) => {
-              navigate(`?page=${newPage}`);
+              navigate(`/lighthouse?page=${newPage}`);
             }}
           />
         )}
@@ -93,7 +94,7 @@ const AuditList = () => {
   }
 
   return (
-    <Page themeId="tool">
+    <Page theme={pageTheme.tool}>
       <Header
         title="Lighthouse"
         subtitle="Website audits powered by Lighthouse"
@@ -110,7 +111,7 @@ const AuditList = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate(createAuditRouteRef.path)}
+            href="/lighthouse/create-audit"
           >
             Create Audit
           </Button>
@@ -118,7 +119,7 @@ const AuditList = () => {
         </ContentHeader>
         <Grid container spacing={3} direction="column">
           <Grid item>
-            <InfoCard noPadding>{content}</InfoCard>
+            <InfoCard>{content}</InfoCard>
           </Grid>
         </Grid>
       </Content>

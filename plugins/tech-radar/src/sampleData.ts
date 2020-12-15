@@ -35,132 +35,85 @@ quadrants.push({ id: 'process', name: 'Process' });
 
 const entries = new Array<RadarEntry>();
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'javascript',
   id: 'javascript',
   title: 'JavaScript',
-  quadrant: 'languages',
+  quadrant: { id: 'languages', name: 'Languages' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-      description:
-        'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat',
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'typescript',
   id: 'typescript',
   title: 'TypeScript',
-  quadrant: 'languages',
+  quadrant: { id: 'languages', name: 'Languages' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'webpack',
   id: 'webpack',
   title: 'Webpack',
-  quadrant: 'frameworks',
+  quadrant: { id: 'frameworks', name: 'Frameworks' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'react',
   id: 'react',
   title: 'React',
-  quadrant: 'frameworks',
+  quadrant: { id: 'frameworks', name: 'Frameworks' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'code-reviews',
   id: 'code-reviews',
   title: 'Code Reviews',
-  quadrant: 'process',
+  quadrant: { id: 'process', name: 'Process' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'assess',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
   url: '#',
   key: 'mob-programming',
   id: 'mob-programming',
   title: 'Mob Programming',
-  quadrant: 'process',
+  quadrant: { id: 'process', name: 'Process' },
+  ring: { id: 'assess', name: 'ASSESS', color: '#fbdb84' },
 });
 entries.push({
-  timeline: [
-    {
-      moved: 0,
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
   url: '#',
   key: 'docs-like-code',
   id: 'docs-like-code',
   title: 'Docs-like-code',
-  quadrant: 'process',
+  quadrant: { id: 'process', name: 'Process' },
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
 });
 entries.push({
-  timeline: [
-    {
-      ringId: 'hold',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
   url: '#',
   key: 'force-push',
   id: 'force-push',
   title: 'Force push to master',
-  quadrant: 'process',
+  quadrant: { id: 'process', name: 'Process' },
+  ring: { id: 'hold', name: 'HOLD', color: '#93c47d' },
 });
 entries.push({
-  timeline: [
-    {
-      ringId: 'use',
-      date: new Date('2020-08-06'),
-    },
-  ],
+  moved: 0,
+  ring: { id: 'use', name: 'USE', color: '#93c47d' },
   url: '#',
   key: 'github-actions',
   id: 'github-actions',
   title: 'GitHub Actions',
-  quadrant: 'infrastructure',
+  quadrant: { id: 'infrastructure', name: 'Infrastructure' },
 });
 
 export default function getSampleData(): Promise<TechRadarLoaderResponse> {

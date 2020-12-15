@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable no-restricted-syntax */
 import { resolve as resolvePath } from 'path';
 import { findPaths, findRootPath, findOwnDir, findOwnRootDir } from './paths';
 

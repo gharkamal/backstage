@@ -26,9 +26,8 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
   constructor(private readonly database: Database) {}
 
   async addLocation(location: Location): Promise<Location> {
-    return await this.database.transaction(
-      async tx => await this.database.addLocation(tx, location),
-    );
+    const added = await this.database.addLocation(location);
+    return added;
   }
 
   async removeLocation(id: string): Promise<void> {
@@ -70,7 +69,7 @@ export class DatabaseLocationsCatalog implements LocationsCatalog {
 
   async logUpdateSuccess(
     locationId: string,
-    entityName?: string | string[],
+    entityName?: string,
   ): Promise<void> {
     await this.database.addLocationUpdateLogEvent(
       locationId,

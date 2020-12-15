@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Entity } from '@backstage/catalog-model';
-import { errorApiRef, useApi } from '@backstage/core';
-import { createContext, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, createContext, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { useApi, errorApiRef } from '@backstage/core';
+import { catalogApiRef } from '../api/types';
 import { useAsync } from 'react-use';
-import { useEntityCompoundName } from '../components/useEntityCompoundName';
-import { catalogApiRef } from '../plugin';
+import { Entity } from '@backstage/catalog-model';
+
+const REDIRECT_DELAY = 2000;
 
 type EntityLoadingStatus = {
   entity?: Entity;
@@ -34,7 +35,8 @@ export const EntityContext = createContext<EntityLoadingStatus>({
 });
 
 export const useEntityFromUrl = (): EntityLoadingStatus => {
-  const { kind, namespace, name } = useEntityCompoundName();
+  const { optionalNamespaceAndName, kind } = useParams();
+  const [name, namespace] = optionalNamespaceAndName.split(':').reverse();
   const navigate = useNavigate();
   const errorApi = useApi(errorApiRef);
   const catalogApi = useApi(catalogApiRef);
@@ -45,6 +47,13 @@ export const useEntityFromUrl = (): EntityLoadingStatus => {
   );
 
   useEffect(() => {
+    if (error || (!loading && !entity)) {
+      errorApi.post(new Error('Entity not found!'));
+      setTimeout(() => {
+        navigate('/');
+      }, REDIRECT_DELAY);
+    }
+
     if (!name) {
       errorApi.post(new Error('No name provided!'));
       navigate('/');
@@ -58,10 +67,6 @@ export const useEntityFromUrl = (): EntityLoadingStatus => {
  * Always going to return an entity, or throw an error if not a descendant of a EntityProvider.
  */
 export const useEntity = () => {
-  const { entity, loading, error } = useContext<{
-    entity: Entity;
-    loading: boolean;
-    error: Error;
-  }>(EntityContext as any);
-  return { entity, loading, error };
+  const { entity } = useContext<{ entity: Entity }>(EntityContext as any);
+  return { entity };
 };

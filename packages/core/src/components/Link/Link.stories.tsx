@@ -29,7 +29,7 @@ const Location = () => {
 };
 
 export default {
-  title: 'Navigation/Link',
+  title: 'Link',
   component: Link,
   decorators: [
     (storyFn: FunctionComponentFactory<{}>) => (
