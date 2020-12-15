@@ -14,111 +14,85 @@
  * limitations under the License.
  */
 
-import { GCPApi } from './GCPApi';
-import { Project, Operation, Status } from './types';
+import { OAuthApi } from '@backstage/core';
+import { GcpApi } from './GcpApi';
+import { Operation, Project } from './types';
 
-const BaseURL =
+const BASE_URL =
   'https://content-cloudresourcemanager.googleapis.com/v1/projects';
 
-export class GCPClient implements GCPApi {
-  async listProjects({ token }: { token: string }): Promise<Project[]> {
-    const response = await fetch(BaseURL, {
-      headers: new Headers({
+export class GcpClient implements GcpApi {
+  constructor(private readonly googleAuthApi: OAuthApi) {}
+
+  async listProjects(): Promise<Project[]> {
+    const response = await fetch(BASE_URL, {
+      headers: {
         Accept: '*/*',
-        Authorization: `Bearer ${token}`,
-      }),
+        Authorization: `Bearer ${await this.getToken()}`,
+      },
     });
 
     if (!response.ok) {
-      return [
-        {
-          name: 'Error',
-          projectNumber: 'Response status is not OK',
-          projectId: 'Error',
-          lifecycleState: 'error',
-          createTime: 'Error',
-        },
-      ];
+      throw new Error(
+        `List request failed to ${BASE_URL} with ${response.status} ${response.statusText}`,
+      );
     }
 
-    const data = await response.json();
-
-    return data.projects;
+    const { projects } = await response.json();
+    return projects;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async getProject(
-    projectId: string,
-    token: Promise<string>,
-  ): Promise<Project> {
-    const url = `${BaseURL}/${projectId}`;
+  async getProject(projectId: string): Promise<Project> {
+    const url = `${BASE_URL}/${projectId}`;
     const response = await fetch(url, {
-      headers: new Headers({
-        Authorization: `Bearer ${await token}`,
-      }),
+      headers: {
+        Authorization: `Bearer ${await this.getToken()}`,
+      },
     });
 
-    const dataBlank: Project = {
-      name: 'Error',
-      projectNumber: `Response status is ${response.status}`,
-      projectId: 'Error',
-      lifecycleState: 'error',
-      createTime: 'Error',
-    };
-
     if (!response.ok) {
-      return dataBlank;
+      throw new Error(
+        `Get request failed to ${url} with ${response.status} ${response.statusText}`,
+      );
     }
 
-    const data = await response.json();
-
-    const newData: Project = data;
-
-    return newData;
+    return await response.json();
   }
 
-  async createProject(
-    projectName: string,
-    projectId: string,
-    token: string,
-  ): Promise<Operation> {
-    const status: Status = {
-      code: 0,
-      message: '',
-      details: [],
-    };
-
-    const op: Operation = {
-      name: '',
-      metadata: '',
-      done: true,
-      error: status,
-      response: '',
-    };
-
+  async createProject(options: {
+    projectId: string;
+    projectName: string;
+  }): Promise<Operation> {
     const newProject: Project = {
-      name: projectName,
-      projectId: projectId,
+      name: options.projectName,
+      projectId: options.projectId,
     };
 
-    const body = JSON.stringify(newProject);
-
-    const response = await fetch(BaseURL, {
-      headers: new Headers({
-        Accept: '*/*',
-        Authorization: `Bearer ${token}`,
-      }),
-      body: body,
+    const response = await fetch(BASE_URL, {
       method: 'POST',
+      headers: {
+        Accept: '*/*',
+        Authorization: `Bearer ${await this.getToken()}`,
+      },
+      body: JSON.stringify(newProject),
     });
 
     if (!response.ok) {
-      status.code = response.status;
-      return op;
+      throw new Error(
+        `Create request failed to ${BASE_URL} with ${response.status} ${response.statusText}`,
+      );
     }
 
-    const data = await response.json();
+    return await response.json();
+  }
 
-    return data;
+  async getToken(): Promise<string> {
+    // NOTE(freben): There's a .read-only variant of this scope that we could
+    // use for readonly operations, but that means we would ask the user for a
+    // second auth during creation and I decided to keep the wider scope for
+    // all ops for now
+    return this.googleAuthApi.getAccessToken(
+      'https://www.googleapis.com/auth/cloud-platform',
+    );
   }
 }

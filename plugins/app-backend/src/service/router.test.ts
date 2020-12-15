@@ -16,15 +16,19 @@
 
 import { resolve as resolvePath } from 'path';
 import { getVoidLogger } from '@backstage/backend-common';
+import { ConfigReader } from '@backstage/config';
 import express from 'express';
 import Router from 'express-promise-router';
 import request from 'supertest';
-
 import { createRouter } from './router';
 
-jest.mock('../lib/config', () => ({ injectEnvConfig: jest.fn() }));
+jest.mock('../lib/config', () => ({
+  injectConfig: jest.fn(),
+  readConfigs: jest.fn(),
+}));
 
 global.__non_webpack_require__ = {
+  /* eslint-disable-next-line no-restricted-syntax */
   resolve: () => resolvePath(__dirname, '__fixtures__/app-dir/package.json'),
 };
 
@@ -34,6 +38,7 @@ describe('createRouter', () => {
   beforeAll(async () => {
     const router = await createRouter({
       logger: getVoidLogger(),
+      config: new ConfigReader({}),
       appPackageName: 'example-app',
     });
     app = express().use(router);
@@ -47,21 +52,21 @@ describe('createRouter', () => {
     const response = await request(app).get('/index.html');
 
     expect(response.status).toBe(200);
-    expect(response.text).toBe('this is index.html\n');
+    expect(response.text.trim()).toBe('this is index.html');
   });
 
   it('returns other.html', async () => {
     const response = await request(app).get('/other.html');
 
     expect(response.status).toBe(200);
-    expect(response.text).toBe('this is other.html\n');
+    expect(response.text.trim()).toBe('this is other.html');
   });
 
   it('returns index.html if missing', async () => {
     const response = await request(app).get('/missing.html');
 
     expect(response.status).toBe(200);
-    expect(response.text).toBe('this is index.html\n');
+    expect(response.text.trim()).toBe('this is index.html');
   });
 });
 
@@ -75,6 +80,7 @@ describe('createRouter with static fallback handler', () => {
 
     const router = await createRouter({
       logger: getVoidLogger(),
+      config: new ConfigReader({}),
       appPackageName: 'example-app',
       staticFallbackHandler,
     });
@@ -83,11 +89,11 @@ describe('createRouter with static fallback handler', () => {
 
     const response1 = await request(app).get('/static/main.txt');
     expect(response1.status).toBe(200);
-    expect(response1.text).toBe('this is main.txt\n');
+    expect(response1.text.trim()).toBe('this is main.txt');
 
     const response2 = await request(app).get('/static/test.txt');
     expect(response2.status).toBe(200);
-    expect(response2.text).toBe('this is test.txt');
+    expect(response2.text.trim()).toBe('this is test.txt');
 
     const response3 = await request(app).get('/static/missing.txt');
     expect(response3.status).toBe(404);

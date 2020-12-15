@@ -29,6 +29,8 @@ import {
   OAuthHandlers,
   OAuthResponse,
   OAuthEnvironmentHandler,
+  OAuthStartRequest,
+  encodeState,
 } from '../../lib/oauth';
 import passport from 'passport';
 
@@ -122,11 +124,11 @@ export class GitlabAuthProvider implements OAuthHandlers {
     );
   }
 
-  async start(
-    req: express.Request,
-    options: Record<string, string>,
-  ): Promise<RedirectInfo> {
-    return await executeRedirectStrategy(req, this._strategy, options);
+  async start(req: OAuthStartRequest): Promise<RedirectInfo> {
+    return await executeRedirectStrategy(req, this._strategy, {
+      scope: req.scope,
+      state: encodeState(req.state),
+    });
   }
 
   async handler(req: express.Request): Promise<{ response: OAuthResponse }> {
@@ -138,12 +140,12 @@ export class GitlabAuthProvider implements OAuthHandlers {
 }
 
 export const createGitlabProvider: AuthProviderFactory = ({
+  providerId,
   globalConfig,
   config,
   tokenIssuer,
 }) =>
   OAuthEnvironmentHandler.mapConfig(config, envConfig => {
-    const providerId = 'gitlab';
     const clientId = envConfig.getString('clientId');
     const clientSecret = envConfig.getString('clientSecret');
     const audience = envConfig.getString('audience');
