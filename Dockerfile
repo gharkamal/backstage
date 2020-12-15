@@ -5,6 +5,7 @@ COPY . /app
 WORKDIR /app
 
 RUN yarn install
+RUN yarn tsc
 RUN yarn workspace example-app build
 
 # Contruct backstage-frontend image
