@@ -4,8 +4,9 @@ setup:
       as: DATABASE
 build:
   docker:
-    web: Dockerfile
+    web: contrib/docker/multi-stage-frontend/Dockerfile
   config:
-    NODE_ENV: production
+    NODE_ENV: development
+    APP_ENV: production
 run:
   web: yarn start
