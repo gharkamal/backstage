@@ -1,4 +1,3 @@
-uild:
+build:
   docker:
     web: Dockerfile
-
