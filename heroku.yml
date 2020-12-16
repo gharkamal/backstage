@@ -1,0 +1,4 @@
+uild:
+  docker:
+    web: Dockerfile
+
